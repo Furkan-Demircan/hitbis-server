@@ -27,7 +27,7 @@ const userSchema = new Schema(
 		weight: {
 			type: Number,
 		},
-		length: {
+		height: {
 			type: Number,
 		},
 		isSignUpComplete: {

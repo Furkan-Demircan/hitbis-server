@@ -11,7 +11,6 @@ const authenticateMiddleware = async (req, res, next) => {
 	const token = authHeader.split(" ")[1];
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY, jwtOptions);
-		console.log("decoded", decoded);
 		if (!decoded) {
 			return res.status(403).json({ isSuccess: false, status: 403, message: "Invalid token" });
 		}

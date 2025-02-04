@@ -17,7 +17,7 @@ const authenticateMiddleware = async (req, res, next) => {
 		req.user = decoded;
 		next();
 	} catch (err) {
-		// console.log(err);
+		console.log(err);
 		return res.status(403).json({ isSuccess: false, status: 403, message: "Invalid token" });
 	}
 };

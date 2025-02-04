@@ -16,6 +16,16 @@ const getProfileByToken = async (req, res) => {
 	return res.json(result);
 };
 
+const getProfileById = async (req, res) => {
+	const userId = req.params.userId;
+	if (!userId) {
+		return res.json(new ErrorResponse(404, "User Not Fount"));
+	}
+
+	var result = await userServices.getProfileById(userId);
+	return res.json(result);
+};
+
 const editUser = async (req, res) => {
 	const userData = req.body;
 	const userId = req.user.userId;
@@ -40,6 +50,7 @@ const resetPassword = async (req, res) => {
 export default {
 	createUser,
 	getProfileByToken,
+	getProfileById,
 	editUser,
 	resetPassword,
 };

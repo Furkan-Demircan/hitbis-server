@@ -1,7 +1,7 @@
 import tokenHelper from "../helpers/tokenHelper.js";
 import UserModel from "../models/UserModel.js";
 import cryptoHelper from "../helpers/cryptoHelper.js";
-import { ProfileInfoByTokenDto } from "../dto/useDtos.js";
+import { ProfileInfoByTokenDto, ProfileInfoDto } from "../dto/useDtos.js";
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 
 const createUser = async (userData) => {
@@ -52,6 +52,7 @@ const loginUser = async (email, password) => {
 
 const getProfileByToken = async (userId) => {
 	const user = await UserModel.findOne({ _id: userId });
+
 	if (!user) {
 		return new ErrorResponse(404, "User not found");
 	}
@@ -68,6 +69,23 @@ const getProfileByToken = async (userId) => {
 	);
 
 	return new SuccessResponse(userProfileData, null, null);
+};
+
+const getProfileById = async (userId) => {
+	try {
+		const user = await UserModel.findById({ _id: userId });
+
+		if (!user) {
+			ErrorResponse(404, "User Not Found");
+		}
+
+		const userProfileData = new ProfileInfoDto(user._id, user.name, user.surname, user.username);
+
+		return new SuccessResponse(userProfileData, null, null);
+	} catch (e) {
+		console.log("e", e);
+		return new ErrorResponse(500, "Something went wrong");
+	}
 };
 
 const editUser = async (userId, userData) => {
@@ -91,7 +109,7 @@ const editUser = async (userId, userData) => {
 			}
 		}
 
-		const res = await UserModel.updateOne({ _id: userId }, userData);
+		await UserModel.updateOne({ _id: userId }, userData);
 
 		return new SuccessResponse(true, null, null);
 	} catch (e) {
@@ -127,6 +145,7 @@ export default {
 	createUser,
 	loginUser,
 	getProfileByToken,
+	getProfileById,
 	editUser,
 	resetPassword,
 };

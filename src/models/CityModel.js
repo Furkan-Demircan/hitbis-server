@@ -1,9 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 
 const CitySchema = new Schema({
-	id: { type: String, required: true },
 	name: { type: String },
-	countryId: { type: String, required: true },
+	countryId: { type: Schema.Types.ObjectId, required: true, ref: "Country" },
 });
 
-export default mongoose.model("City", CitySchema, "cities");
+export default mongoose.models.City || mongoose.model("City", CitySchema, "cities");

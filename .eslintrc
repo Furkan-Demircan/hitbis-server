@@ -1,0 +1,6 @@
+{
+	"rules": {
+		"no-unused-vars": "warn", // Kullanılmayan değişkenler için hata verir
+		"no-undef": "error" // Tanımlanmamış değişkenler için hata verir
+	}
+}

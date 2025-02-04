@@ -3,7 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectToDatabase from "./src/db/db.js";
 import routes from "./src/routes/index.js";
-import bcrypt from "bcrypt";
 
 dotenv.config();
 const app = express();

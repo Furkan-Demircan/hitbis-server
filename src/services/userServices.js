@@ -76,7 +76,7 @@ const getProfileById = async (userId) => {
 		const user = await UserModel.findById({ _id: userId });
 
 		if (!user) {
-			ErrorResponse(404, "User Not Found");
+			return new ErrorResponse(404, "User Not Found");
 		}
 
 		const userProfileData = new ProfileInfoDto(user._id, user.name, user.surname, user.username);

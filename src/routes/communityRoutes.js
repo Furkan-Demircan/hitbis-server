@@ -6,5 +6,6 @@ import { createCommunityValidation } from "../validations/communityValidations.j
 const communityRoutes = Router();
 
 communityRoutes.post("/create", validator(createCommunityValidation), communityController.createCommunity);
-
+communityRoutes.get("/groups", communityController.getAllCommunity);
+communityRoutes.get("/group", communityController.getCommunityById);
 export default communityRoutes;

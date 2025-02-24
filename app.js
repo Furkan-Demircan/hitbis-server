@@ -19,5 +19,5 @@ app.use("/api/country/", routes.countryRoutes);
 app.use("/api/city/", routes.cityRoutes);
 
 app.listen(port, () => {
-	console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });

@@ -3,7 +3,8 @@ import communityService from "../services/communityService.js";
 
 const createCommunity = async (req, res) => {
   const communityData = req.body;
-  var result = await communityService.createCommunity(communityData);
+  const adminId = req.user.userId;
+  var result = await communityService.createCommunity(communityData, adminId);
   return res.json(result);
 };
 
@@ -13,24 +14,35 @@ const getAllCommunity = async (req, res) => {
 };
 
 const getCommunityById = async (req, res) => {
-  const communityId = req.query.communityId;
+  const groupId = req.query.groupId;
 
-  if (!communityId) {
+  if (!groupId) {
     return res.json(new ErrorResponse(404, "Community not found"));
   }
-  var result = await communityService.getCommunityById(communityId);
+  var result = await communityService.getCommunityById(groupId);
   return res.json(result);
 };
 
 const addUserToCommunity = async (req, res) => {
-  const communityId = req.query.communityId;
+  const groupId = req.query.groupId;
   const userId = req.user.userId;
 
-  if (!communityId) {
+  if (!groupId) {
     return res.json(new ErrorResponse(404, "Community not found"));
   }
 
-  var result = await communityService.addUserToCommunity(communityId, userId);
+  var result = await communityService.addUserToCommunity(groupId, userId);
+  return res.json(result);
+};
+
+const getUsersInCommunity = async (req, res) => {
+  const groupId = req.query.groupId;
+
+  if (!groupId) {
+    return res.json(new ErrorResponse(404, "Community not found"));
+  }
+
+  var result = await communityService.getUsersInCommunity(groupId);
   return res.json(result);
 };
 
@@ -39,4 +51,5 @@ export default {
   getAllCommunity,
   getCommunityById,
   addUserToCommunity,
+  getUsersInCommunity,
 };

@@ -1,22 +1,33 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import CommunityModel from "../models/CommunityModel.js";
+import ComminityItem from "../models/CommunityItem.js";
 import { CommunityInfoDto } from "../dto/communityDtos.js";
 
-const createCommunity = async (communityData) => {
+const createCommunity = async (communityData, adminId) => {
   try {
     const isCommunityExists = await CommunityModel.findOne({
       name: communityData.name,
     });
+
+    const isUserIncommunity = await ComminityItem.findOne({ userId: adminId });
+
+    if (isUserIncommunity) {
+      return new ErrorResponse(401, "User is already in community");
+    }
+
     if (isCommunityExists) {
       return new ErrorResponse(401, "Community name already use");
     }
 
     var createResult = await CommunityModel.create(communityData);
-    return new SuccessResponse(
-      createResult._id,
-      "Community create succesfully",
-      null
-    );
+    var addAdmin = await ComminityItem.create({
+      communityId: createResult._id,
+      userId: adminId,
+      isAdmin: true,
+    });
+
+    console.log(addAdmin);
+    return new SuccessResponse(addAdmin, "Community create succesfully", null);
   } catch {
     return new ErrorResponse(500, "Something went wrong");
   }
@@ -35,8 +46,8 @@ const getAllCommunity = async () => {
   }
 };
 
-const getCommunityById = async (communityId) => {
-  const group = await CommunityModel.findOne({ _id: communityId }).populate([
+const getCommunityById = async (groupId) => {
+  const group = await CommunityModel.findOne({ _id: groupId }).populate([
     "country",
     "city",
   ]);
@@ -59,20 +70,44 @@ const getCommunityById = async (communityId) => {
 };
 
 const addUserToCommunity = async (communityId, userId) => {
-  const group = await CommunityModel.findOne({ _id: communityId });
-  if (!group) {
-    return new ErrorResponse(404, "Community not found");
+  try {
+    const group = await CommunityModel.findOne({ _id: communityId });
+    const user = await ComminityItem.findOne({ userId: userId });
+
+    if (user) {
+      return new ErrorResponse(401, "User is already in community");
+    }
+
+    if (!group) {
+      return new ErrorResponse(404, "Community not found");
+    }
+
+    var addResult = await ComminityItem.create({
+      communityId: communityId,
+      userId: userId,
+    });
+    return new SuccessResponse(addResult, "User added to group", null);
+  } catch {
+    return new ErrorResponse(500, "Something went wrong");
   }
-
-  group.users.push(userId);
-  await group.save();
-
-  return new SuccessResponse(null, "User added to group", null);
 };
 
+const getUsersInCommunity = async (groupId) => {
+  try {
+    const users = await ComminityItem.find({ communityId: groupId });
+    if (!users) {
+      return new ErrorResponse(404, "Users not found");
+    }
+
+    return new SuccessResponse(users, null, users.length);
+  } catch {
+    return new ErrorResponse(500, "Something went wrong");
+  }
+};
 export default {
   createCommunity,
   getAllCommunity,
   getCommunityById,
   addUserToCommunity,
+  getUsersInCommunity,
 };

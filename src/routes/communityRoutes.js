@@ -8,13 +8,14 @@ const communityRoutes = Router();
 
 communityRoutes.post(
   "/create",
+  authenticateMiddleware,
   validator(createCommunityValidation),
   communityController.createCommunity
 );
 communityRoutes.get("/groups", communityController.getAllCommunity);
 communityRoutes.get("/group", communityController.getCommunityById);
 communityRoutes.post(
-  "/addUser",
+  "/adduser",
   authenticateMiddleware,
   communityController.addUserToCommunity
 );

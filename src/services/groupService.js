@@ -1,6 +1,6 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import GroupModel from "../models/GroupModel.js";
-import ComminityItem from "../models/GroupItem.js";
+import ComminityItem from "../models/GroupItemModel.js";
 import { GroupInfoDto } from "../dto/groupDtos.js";
 
 const createGroup = async (groupData, adminId) => {
@@ -98,6 +98,8 @@ const getUsersInGroup = async (groupId) => {
     if (!users) {
       return new ErrorResponse(404, "Users not found");
     }
+
+    console.log(users);
 
     return new SuccessResponse(users, null, users.length);
   } catch {

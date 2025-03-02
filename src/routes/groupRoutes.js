@@ -19,4 +19,5 @@ groupRoutes.post(
   authenticateMiddleware,
   groupController.addUserToGroup
 );
+groupRoutes.get("/getusers", groupController.getUsersInGroup);
 export default groupRoutes;

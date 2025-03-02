@@ -1,4 +1,4 @@
-export class CommunityInfoDto {
+export class GroupInfoDto {
   id;
   name;
   description;
@@ -15,14 +15,14 @@ export class CommunityInfoDto {
   }
 }
 
-export class communityItemDto {
+export class groupItemDto {
   userId;
-  communityId;
+  groupId;
   isAdmin;
   isBanned;
-  constructor(userId, communityId, isAdmin, isBanned) {
+  constructor(userId, groupId, isAdmin, isBanned) {
     this.userId = userId;
-    this.communityId = communityId;
+    this.groupId = groupId;
     this.isAdmin = isAdmin;
     this.isBanned = isBanned;
   }

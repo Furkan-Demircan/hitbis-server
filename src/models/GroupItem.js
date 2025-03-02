@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
-const CommunityItemSchema = new Schema({
+const GroupItemSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User" },
-  communityId: { type: Schema.Types.ObjectId, ref: "Community" },
+  groupId: { type: Schema.Types.ObjectId, ref: "Group" },
   isAdmin: { type: Boolean, default: false },
   isBanned: { type: Boolean, default: false },
 });
 
-export default mongoose.model("CommunityItem", CommunityItemSchema);
+export default mongoose.model("GroupItem", GroupItemSchema);

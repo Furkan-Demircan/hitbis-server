@@ -1,7 +1,8 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import GroupModel from "../models/GroupModel.js";
-import ComminityItem from "../models/GroupItemModel.js";
+import groupItem from "../models/GroupItemModel.js";
 import { GroupInfoDto } from "../dto/groupDtos.js";
+import { ProfileInfoDto } from "../dto/userDtos.js";
 
 const createGroup = async (groupData, adminId) => {
   try {
@@ -9,7 +10,7 @@ const createGroup = async (groupData, adminId) => {
       name: groupData.name,
     });
 
-    const isUserIngroup = await ComminityItem.findOne({ userId: adminId });
+    const isUserIngroup = await groupItem.findOne({ userId: adminId });
 
     if (isUserIngroup) {
       return new ErrorResponse(401, "User is already in group");
@@ -20,7 +21,7 @@ const createGroup = async (groupData, adminId) => {
     }
 
     var createResult = await GroupModel.create(groupData);
-    var addAdmin = await ComminityItem.create({
+    var addAdmin = await groupItem.create({
       groupId: createResult._id,
       userId: adminId,
       isAdmin: true,
@@ -72,7 +73,7 @@ const getGroupById = async (groupId) => {
 const addUserToGroup = async (groupId, userId) => {
   try {
     const group = await GroupModel.findOne({ _id: groupId });
-    const user = await ComminityItem.findOne({ userId: userId });
+    const user = await groupItem.findOne({ userId: userId });
 
     if (user) {
       return new ErrorResponse(401, "User is already in group");
@@ -82,7 +83,7 @@ const addUserToGroup = async (groupId, userId) => {
       return new ErrorResponse(404, "Group not found");
     }
 
-    var addResult = await ComminityItem.create({
+    var addResult = await groupItem.create({
       groupId: groupId,
       userId: userId,
     });
@@ -94,10 +95,23 @@ const addUserToGroup = async (groupId, userId) => {
 
 const getUsersInGroup = async (groupId) => {
   try {
-    const users = await ComminityItem.find({ groupId: groupId });
-    if (!users) {
+    const members = await groupItem
+      .find({ groupId: groupId })
+      .populate("userId");
+    if (!members) {
       return new ErrorResponse(404, "Users not found");
     }
+
+    const users = [];
+    members.map((member) => {
+      const userInfo = new ProfileInfoDto(
+        member.userId._id,
+        member.userId.name,
+        member.userId.surname,
+        member.userId.username
+      );
+      users.push(userInfo);
+    });
 
     console.log(users);
 

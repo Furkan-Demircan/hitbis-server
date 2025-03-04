@@ -3,6 +3,7 @@ import GroupModel from "../models/GroupModel.js";
 import groupItem from "../models/GroupItemModel.js";
 import { GroupInfoDto } from "../dto/groupDtos.js";
 import { ProfileInfoDto } from "../dto/userDtos.js";
+import GroupItemModel from "../models/GroupItemModel.js";
 
 const createGroup = async (groupData, adminId) => {
   try {
@@ -70,7 +71,7 @@ const getGroupById = async (groupId) => {
   return new SuccessResponse(groupData, null, null);
 };
 
-const addUserToGroup = async (groupId, userId) => {
+const joinGroup = async (groupId, userId) => {
   try {
     const group = await GroupModel.findOne({ _id: groupId });
     const user = await groupItem.findOne({ userId: userId });
@@ -120,10 +121,59 @@ const getUsersInGroup = async (groupId) => {
     return new ErrorResponse(500, "Something went wrong");
   }
 };
+
+const leaveGroup = async (groupId, userId) => {
+  try {
+    const user = await groupItem.findOne({ groupId: groupId, userId: userId });
+
+    if (!user) {
+      return new ErrorResponse(404, "User not found in group");
+    }
+
+    var deleteResult = await groupItem
+      .findOneAndDelete({ groupId: groupId, userId: userId })
+      .exec();
+
+    return new SuccessResponse(deleteResult, "User leave group", null);
+  } catch {
+    return new ErrorResponse(500, "Something went wrong");
+  }
+};
+
+const deleteUser = async (groupId, adminId, userId) => {
+  try {
+    const existingAdmin = await GroupItemModel.findOne({
+      groupId: groupId,
+      userId: adminId,
+      isAdmin: true,
+    });
+
+    if (!existingAdmin) {
+      return new ErrorResponse(401, "You do not have permission");
+    }
+
+    const user = await groupItem.findOne({ groupId: groupId, userId: userId });
+
+    if (!user) {
+      return new ErrorResponse(404, "User not found in group");
+    }
+
+    var deleteResult = await groupItem
+      .findOneAndDelete({ groupId: groupId, userId: userId })
+      .exec();
+
+    return new SuccessResponse(deleteResult, "User deleted from group", null);
+  } catch {
+    return new ErrorResponse(500, "Something went wrong");
+  }
+};
+
 export default {
   createGroup,
   getAllGroup,
   getGroupById,
-  addUserToGroup,
+  joinGroup,
   getUsersInGroup,
+  leaveGroup,
+  deleteUser,
 };

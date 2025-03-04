@@ -23,7 +23,7 @@ const getGroupById = async (req, res) => {
   return res.json(result);
 };
 
-const addUserToGroup = async (req, res) => {
+const joinGroup = async (req, res) => {
   const groupId = req.query.groupId;
   const userId = req.user.userId;
 
@@ -31,7 +31,7 @@ const addUserToGroup = async (req, res) => {
     return res.json(new ErrorResponse(404, "Group not found"));
   }
 
-  var result = await groupService.addUserToGroup(groupId, userId);
+  var result = await groupService.joinGroup(groupId, userId);
   return res.json(result);
 };
 
@@ -46,10 +46,37 @@ const getUsersInGroup = async (req, res) => {
   return res.json(result);
 };
 
+const leaveGroup = async (req, res) => {
+  const groupId = req.query.groupId;
+  const userId = req.user.userId;
+
+  if (!groupId) {
+    return res.json(new ErrorResponse(404, "Group not found"));
+  }
+
+  var result = await groupService.leaveGroup(groupId, userId);
+  return res.json(result);
+};
+
+const deleteUser = async (req, res) => {
+  const groupId = req.query.groupId;
+  const adminId = req.user.userId;
+  const userId = req.query.userId;
+
+  if (!groupId) {
+    return res.json(new ErrorResponse(404, "Group not found"));
+  }
+
+  var result = await groupService.deleteUser(groupId, adminId, userId);
+  return res.json(result);
+};
+
 export default {
   createGroup,
   getAllGroup,
   getGroupById,
-  addUserToGroup,
+  joinGroup,
   getUsersInGroup,
+  leaveGroup,
+  deleteUser,
 };

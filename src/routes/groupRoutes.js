@@ -14,10 +14,16 @@ groupRoutes.post(
 );
 groupRoutes.get("/groups", groupController.getAllGroup);
 groupRoutes.get("/group", groupController.getGroupById);
-groupRoutes.post(
-  "/adduser",
-  authenticateMiddleware,
-  groupController.addUserToGroup
-);
+groupRoutes.post("/join", authenticateMiddleware, groupController.joinGroup);
 groupRoutes.get("/getusers", groupController.getUsersInGroup);
+groupRoutes.delete(
+  "/leave",
+  authenticateMiddleware,
+  groupController.leaveGroup
+);
+groupRoutes.delete(
+  "/deleteuser",
+  authenticateMiddleware,
+  groupController.deleteUser
+);
 export default groupRoutes;

@@ -26,4 +26,5 @@ groupRoutes.delete(
   authenticateMiddleware,
   groupController.deleteUser
 );
+
 export default groupRoutes;

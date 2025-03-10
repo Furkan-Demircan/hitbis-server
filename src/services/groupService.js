@@ -1,9 +1,9 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import GroupModel from "../models/GroupModel.js";
-import groupItem from "../models/GroupItemModel.js";
+import GroupItemModel from "../models/GroupItemModel.js";
+import EventModel from "../models/EventModel.js";
 import { GroupInfoDto } from "../dto/groupDtos.js";
 import { ProfileInfoDto } from "../dto/userDtos.js";
-import GroupItemModel from "../models/GroupItemModel.js";
 
 const createGroup = async (groupData, adminId) => {
   try {
@@ -11,7 +11,7 @@ const createGroup = async (groupData, adminId) => {
       name: groupData.name,
     });
 
-    const isUserIngroup = await groupItem.findOne({ userId: adminId });
+    const isUserIngroup = await GroupItemModel.findOne({ userId: adminId });
 
     if (isUserIngroup) {
       return new ErrorResponse(401, "User is already in group");
@@ -22,13 +22,12 @@ const createGroup = async (groupData, adminId) => {
     }
 
     var createResult = await GroupModel.create(groupData);
-    var addAdmin = await groupItem.create({
+    var addAdmin = await GroupItemModel.create({
       groupId: createResult._id,
       userId: adminId,
       isAdmin: true,
     });
 
-    console.log(addAdmin);
     return new SuccessResponse(addAdmin, "Group create succesfully", null);
   } catch {
     return new ErrorResponse(500, "Something went wrong");
@@ -74,7 +73,7 @@ const getGroupById = async (groupId) => {
 const joinGroup = async (groupId, userId) => {
   try {
     const group = await GroupModel.findOne({ _id: groupId });
-    const user = await groupItem.findOne({ userId: userId });
+    const user = await GroupItemModel.findOne({ userId: userId });
 
     if (user) {
       return new ErrorResponse(401, "User is already in group");
@@ -84,7 +83,7 @@ const joinGroup = async (groupId, userId) => {
       return new ErrorResponse(404, "Group not found");
     }
 
-    var addResult = await groupItem.create({
+    var addResult = await GroupItemModel.create({
       groupId: groupId,
       userId: userId,
     });
@@ -96,9 +95,9 @@ const joinGroup = async (groupId, userId) => {
 
 const getUsersInGroup = async (groupId) => {
   try {
-    const members = await groupItem
-      .find({ groupId: groupId })
-      .populate("userId");
+    const members = await GroupItemModel.find({ groupId: groupId }).populate(
+      "userId"
+    );
     if (!members) {
       return new ErrorResponse(404, "Users not found");
     }
@@ -124,15 +123,19 @@ const getUsersInGroup = async (groupId) => {
 
 const leaveGroup = async (groupId, userId) => {
   try {
-    const user = await groupItem.findOne({ groupId: groupId, userId: userId });
+    const user = await GroupItemModel.findOne({
+      groupId: groupId,
+      userId: userId,
+    });
 
     if (!user) {
       return new ErrorResponse(404, "User not found in group");
     }
 
-    var deleteResult = await groupItem
-      .findOneAndDelete({ groupId: groupId, userId: userId })
-      .exec();
+    var deleteResult = await GroupItemModel.findOneAndDelete({
+      groupId: groupId,
+      userId: userId,
+    }).exec();
 
     return new SuccessResponse(deleteResult, "User leave group", null);
   } catch {
@@ -152,15 +155,19 @@ const deleteUser = async (groupId, adminId, userId) => {
       return new ErrorResponse(401, "You do not have permission");
     }
 
-    const user = await groupItem.findOne({ groupId: groupId, userId: userId });
+    const user = await GroupItemModel.findOne({
+      groupId: groupId,
+      userId: userId,
+    });
 
     if (!user) {
       return new ErrorResponse(404, "User not found in group");
     }
 
-    var deleteResult = await groupItem
-      .findOneAndDelete({ groupId: groupId, userId: userId })
-      .exec();
+    var deleteResult = await GroupItemModel.findOneAndDelete({
+      groupId: groupId,
+      userId: userId,
+    }).exec();
 
     return new SuccessResponse(deleteResult, "User deleted from group", null);
   } catch {

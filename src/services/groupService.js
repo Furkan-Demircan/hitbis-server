@@ -6,181 +6,185 @@ import { GroupInfoDto } from "../dto/groupDtos.js";
 import { ProfileInfoDto } from "../dto/userDtos.js";
 
 const createGroup = async (groupData, adminId) => {
-  try {
-    const isGroupExists = await GroupModel.findOne({
-      name: groupData.name,
-    });
+    try {
+        const isGroupExists = await GroupModel.findOne({
+            name: groupData.name,
+        });
 
-    const isUserIngroup = await GroupItemModel.findOne({ userId: adminId });
+        const isUserIngroup = await GroupItemModel.findOne({ userId: adminId });
 
-    if (isUserIngroup) {
-      return new ErrorResponse(401, "User is already in group");
+        if (isUserIngroup) {
+            return new ErrorResponse(401, "User is already in group");
+        }
+
+        if (isGroupExists) {
+            return new ErrorResponse(401, "Group name already use");
+        }
+
+        var createResult = await GroupModel.create(groupData);
+        var addAdmin = await GroupItemModel.create({
+            groupId: createResult._id,
+            userId: adminId,
+            isAdmin: true,
+        });
+
+        return new SuccessResponse(addAdmin, "Group create succesfully", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
     }
-
-    if (isGroupExists) {
-      return new ErrorResponse(401, "Group name already use");
-    }
-
-    var createResult = await GroupModel.create(groupData);
-    var addAdmin = await GroupItemModel.create({
-      groupId: createResult._id,
-      userId: adminId,
-      isAdmin: true,
-    });
-
-    return new SuccessResponse(addAdmin, "Group create succesfully", null);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
 };
 
 const getAllGroup = async () => {
-  try {
-    const communities = await GroupModel.find();
-    if (!communities) {
-      return new ErrorResponse(404, "Group not found");
-    }
+    try {
+        const communities = await GroupModel.find();
+        if (!communities) {
+            return new ErrorResponse(404, "Group not found");
+        }
 
-    return new SuccessResponse(communities, null, communities.length);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
+        return new SuccessResponse(communities, null, communities.length);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
 };
 
 const getGroupById = async (groupId) => {
-  const group = await GroupModel.findOne({ _id: groupId }).populate([
-    "country",
-    "city",
-  ]);
-  if (!group) {
-    return new ErrorResponse(404, "Group not found");
-  }
+    const group = await GroupModel.findOne({ _id: groupId }).populate([
+        "country",
+        "city",
+    ]);
+    if (!group) {
+        return new ErrorResponse(404, "Group not found");
+    }
 
-  const groupData = new GroupInfoDto(
-    group._id,
-    group.name,
-    group.description,
-    group.isPublic,
-    // @ts-ignore
-    group.country,
-    // @ts-ignore
-    group.city
-  );
+    const groupData = new GroupInfoDto(
+        group._id,
+        group.name,
+        group.description,
+        group.isPublic,
+        // @ts-ignore
+        group.country,
+        // @ts-ignore
+        group.city
+    );
 
-  return new SuccessResponse(groupData, null, null);
+    return new SuccessResponse(groupData, null, null);
 };
 
 const joinGroup = async (groupId, userId) => {
-  try {
-    const group = await GroupModel.findOne({ _id: groupId });
-    const user = await GroupItemModel.findOne({ userId: userId });
+    try {
+        const group = await GroupModel.findOne({ _id: groupId });
+        const user = await GroupItemModel.findOne({ userId: userId });
 
-    if (user) {
-      return new ErrorResponse(401, "User is already in group");
+        if (user) {
+            return new ErrorResponse(401, "User is already in group");
+        }
+
+        if (!group) {
+            return new ErrorResponse(404, "Group not found");
+        }
+
+        var addResult = await GroupItemModel.create({
+            groupId: groupId,
+            userId: userId,
+        });
+        return new SuccessResponse(addResult, "User added to group", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
     }
-
-    if (!group) {
-      return new ErrorResponse(404, "Group not found");
-    }
-
-    var addResult = await GroupItemModel.create({
-      groupId: groupId,
-      userId: userId,
-    });
-    return new SuccessResponse(addResult, "User added to group", null);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
 };
 
 const getUsersInGroup = async (groupId) => {
-  try {
-    const members = await GroupItemModel.find({ groupId: groupId }).populate(
-      "userId"
-    );
-    if (!members) {
-      return new ErrorResponse(404, "Users not found");
+    try {
+        const members = await GroupItemModel.find({
+            groupId: groupId,
+        }).populate("userId");
+        if (!members) {
+            return new ErrorResponse(404, "Users not found");
+        }
+
+        const users = [];
+        members.map((member) => {
+            const userInfo = new ProfileInfoDto(
+                member.userId._id,
+                member.userId.name,
+                member.userId.surname,
+                member.userId.username
+            );
+            users.push(userInfo);
+        });
+
+        console.log(users);
+
+        return new SuccessResponse(users, null, users.length);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
     }
-
-    const users = [];
-    members.map((member) => {
-      const userInfo = new ProfileInfoDto(
-        member.userId._id,
-        member.userId.name,
-        member.userId.surname,
-        member.userId.username
-      );
-      users.push(userInfo);
-    });
-
-    console.log(users);
-
-    return new SuccessResponse(users, null, users.length);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
 };
 
 const leaveGroup = async (groupId, userId) => {
-  try {
-    const user = await GroupItemModel.findOne({
-      groupId: groupId,
-      userId: userId,
-    });
+    try {
+        const user = await GroupItemModel.findOne({
+            groupId: groupId,
+            userId: userId,
+        });
 
-    if (!user) {
-      return new ErrorResponse(404, "User not found in group");
+        if (!user) {
+            return new ErrorResponse(404, "User not found in group");
+        }
+
+        var deleteResult = await GroupItemModel.findOneAndDelete({
+            groupId: groupId,
+            userId: userId,
+        }).exec();
+
+        return new SuccessResponse(deleteResult, "User leave group", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
     }
-
-    var deleteResult = await GroupItemModel.findOneAndDelete({
-      groupId: groupId,
-      userId: userId,
-    }).exec();
-
-    return new SuccessResponse(deleteResult, "User leave group", null);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
 };
 
 const deleteUser = async (groupId, adminId, userId) => {
-  try {
-    const existingAdmin = await GroupItemModel.findOne({
-      groupId: groupId,
-      userId: adminId,
-      isAdmin: true,
-    });
+    try {
+        const existingAdmin = await GroupItemModel.findOne({
+            groupId: groupId,
+            userId: adminId,
+            isAdmin: true,
+        });
 
-    if (!existingAdmin) {
-      return new ErrorResponse(401, "You do not have permission");
+        if (!existingAdmin) {
+            return new ErrorResponse(401, "You do not have permission");
+        }
+
+        const user = await GroupItemModel.findOne({
+            groupId: groupId,
+            userId: userId,
+        });
+
+        if (!user) {
+            return new ErrorResponse(404, "User not found in group");
+        }
+
+        var deleteResult = await GroupItemModel.findOneAndDelete({
+            groupId: groupId,
+            userId: userId,
+        }).exec();
+
+        return new SuccessResponse(
+            deleteResult,
+            "User deleted from group",
+            null
+        );
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
     }
-
-    const user = await GroupItemModel.findOne({
-      groupId: groupId,
-      userId: userId,
-    });
-
-    if (!user) {
-      return new ErrorResponse(404, "User not found in group");
-    }
-
-    var deleteResult = await GroupItemModel.findOneAndDelete({
-      groupId: groupId,
-      userId: userId,
-    }).exec();
-
-    return new SuccessResponse(deleteResult, "User deleted from group", null);
-  } catch {
-    return new ErrorResponse(500, "Something went wrong");
-  }
 };
 
 export default {
-  createGroup,
-  getAllGroup,
-  getGroupById,
-  joinGroup,
-  getUsersInGroup,
-  leaveGroup,
-  deleteUser,
+    createGroup,
+    getAllGroup,
+    getGroupById,
+    joinGroup,
+    getUsersInGroup,
+    leaveGroup,
+    deleteUser,
 };

@@ -12,5 +12,18 @@ eventRoutes.post(
     validator(createEventValidation),
     eventController.createEvent
 );
+eventRoutes.get("/", eventController.getEventById);
+eventRoutes.post(
+    "/update",
+    authenticateMiddleware,
+    eventController.updateEvent
+);
+eventRoutes.delete(
+    "/delete",
+    authenticateMiddleware,
+    eventController.deleteEvent
+);
+eventRoutes.get("/all", eventController.getAllEvents);
+eventRoutes.post("/join", authenticateMiddleware, eventController.joinEvent);
 
 export default eventRoutes;

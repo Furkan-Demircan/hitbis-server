@@ -1,12 +1,16 @@
 export class EventInfoDtos {
-  id;
-  name;
-  description;
-  date;
-  constructor(id, name, description, date) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.date = date;
-  }
+    id;
+    title;
+    description;
+    startDate;
+    location;
+    isActive;
+    constructor(id, title, description, startDate, location, isActive) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.startDate = startDate;
+        this.location = location;
+        this.isActive = isActive;
+    }
 }

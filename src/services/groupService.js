@@ -1,7 +1,6 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import GroupModel from "../models/GroupModel.js";
 import GroupItemModel from "../models/GroupItemModel.js";
-import EventModel from "../models/EventModel.js";
 import { GroupInfoDto } from "../dto/groupDtos.js";
 import { ProfileInfoDto } from "../dto/userDtos.js";
 

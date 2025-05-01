@@ -114,6 +114,27 @@ const getActiveEventByGroupId = async (req, res) => {
     return res.json(result);
 };
 
+const removeUserFromEvent = async (req, res) => {
+    const eventId = req.query.eventId;
+    const userId = req.query.userId;
+    const adminId = req.user.userId;
+
+    if (!userId) {
+        return res.json(new ErrorResponse(404, "User not found"));
+    }
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "Event not found"));
+    }
+
+    var result = await eventService.removeUserFromEvent(
+        eventId,
+        userId,
+        adminId
+    );
+    return res.json(result);
+};
+
 export default {
     createEvent,
     getEventById,
@@ -125,4 +146,5 @@ export default {
     getEventUsers,
     getUserEvents,
     getActiveEventByGroupId,
+    removeUserFromEvent,
 };

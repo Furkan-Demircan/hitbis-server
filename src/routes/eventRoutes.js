@@ -37,5 +37,10 @@ eventRoutes.get(
     authenticateMiddleware,
     eventController.getActiveEventByGroupId
 );
+eventRoutes.delete(
+    "/remove-user",
+    authenticateMiddleware,
+    eventController.removeUserFromEvent
+);
 
 export default eventRoutes;

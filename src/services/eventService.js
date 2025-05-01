@@ -322,6 +322,47 @@ const getActiveEventByGroupId = async (groupId) => {
     }
 };
 
+const removeUserFromEvent = async (eventId, targetUserId, adminId) => {
+    try {
+        const event = await EventModel.findById(eventId);
+        if (!event) {
+            return new ErrorResponse(404, "Event not found");
+        }
+
+        const isAdmin = await GroupItemModel.findOne({
+            groupId: event.groupId,
+            userId: adminId,
+            isAdmin: true,
+        });
+
+        if (!isAdmin) {
+            return new ErrorResponse(401, "You do not have permission");
+        }
+
+        const target = await EventItemModel.findOne({
+            eventId,
+            userId: targetUserId,
+            isLeave: false,
+        });
+
+        if (!target) {
+            return new ErrorResponse(
+                404,
+                "User not found or already left the event"
+            );
+        }
+
+        const update = await EventItemModel.updateOne(
+            { eventId, userId: targetUserId },
+            { $set: { isLeave: true } }
+        );
+
+        return new SuccessResponse(update, "User removed from event", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
 export default {
     createEvent,
     getEventById,
@@ -333,4 +374,5 @@ export default {
     getEventUsers,
     getUserEvents,
     getActiveEventByGroupId,
+    removeUserFromEvent,
 };

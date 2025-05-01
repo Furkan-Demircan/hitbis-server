@@ -25,5 +25,16 @@ eventRoutes.delete(
 );
 eventRoutes.get("/all", eventController.getAllEvents);
 eventRoutes.post("/join", authenticateMiddleware, eventController.joinEvent);
+eventRoutes.post("/leave", authenticateMiddleware, eventController.leaveEvent);
+eventRoutes.get(
+    "/users",
+    authenticateMiddleware,
+    eventController.getEventUsers
+);
+eventRoutes.get(
+    "/user/:id",
+    authenticateMiddleware,
+    eventController.getUserEvents
+);
 
 export default eventRoutes;

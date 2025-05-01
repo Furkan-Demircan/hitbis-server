@@ -1,4 +1,3 @@
-import { get } from "mongoose";
 import { ErrorResponse } from "../helpers/responseHelper.js";
 import eventService from "../services/eventService.js";
 
@@ -70,6 +69,40 @@ const joinEvent = async (req, res) => {
     return res.json(result);
 };
 
+const leaveEvent = async (req, res) => {
+    const eventId = req.query.eventId;
+    const userId = req.user.userId;
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "Event not found"));
+    }
+
+    var result = await eventService.leaveEvent(eventId, userId);
+    return res.json(result);
+};
+
+const getEventUsers = async (req, res) => {
+    const eventId = req.query.eventId;
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "Event not found"));
+    }
+
+    var result = await eventService.getEventUsers(eventId);
+    return res.json(result);
+};
+
+const getUserEvents = async (req, res) => {
+    const userId = req.params.id;
+
+    if (!userId) {
+        return res.json(new ErrorResponse(404, "User not found"));
+    }
+
+    var result = await eventService.getUserEvents(userId);
+    return res.json(result);
+};
+
 export default {
     createEvent,
     getEventById,
@@ -77,4 +110,7 @@ export default {
     deleteEvent,
     getAllEvents,
     joinEvent,
+    leaveEvent,
+    getEventUsers,
+    getUserEvents,
 };

@@ -4,6 +4,7 @@ import GroupItemModel from "../models/GroupItemModel.js";
 import EventModel from "../models/EventModel.js";
 import { EventInfoDtos } from "../dto/eventDtos.js";
 import EventItemModel from "../models/EventItemModel.js";
+import { ProfileInfoDto } from "../dto/userDtos.js";
 
 const createEvent = async (groupId, adminId, eventData) => {
     try {
@@ -42,7 +43,7 @@ const createEvent = async (groupId, adminId, eventData) => {
         });
 
         return new SuccessResponse(addAdminResult, "Event created", null);
-    } catch (error) {
+    } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
 };
@@ -64,7 +65,7 @@ const getEventById = async (eventId) => {
         );
 
         return new SuccessResponse(eventData, "Event found", null);
-    } catch (error) {
+    } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
 };
@@ -88,7 +89,7 @@ const getAllEvents = async (groupId) => {
         });
 
         return new SuccessResponse(eventData, "Events found", eventData.length);
-    } catch (error) {
+    } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
 };
@@ -154,7 +155,7 @@ const deleteEvent = async (eventId, userId) => {
         );
 
         return new SuccessResponse(deleteResult, "Event deleted", null);
-    } catch (error) {
+    } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
 };
@@ -187,6 +188,78 @@ const joinEvent = async (eventId, userId) => {
             eventId: eventId,
             userId: userId,
         });
+
+        return new SuccessResponse(
+            joinResult,
+            "You have joined the event",
+            null
+        );
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
+const leaveEvent = async (eventId, userId) => {
+    try {
+        const event = await EventModel.findOne({ _id: eventId });
+
+        if (!event) {
+            return new ErrorResponse(404, "Event not found");
+        }
+
+        const isEventUser = await EventItemModel.findOne({
+            eventId: eventId,
+            userId: userId,
+            isLeave: false,
+        });
+
+        if (!isEventUser) {
+            return new ErrorResponse(401, "You do not have permission");
+        }
+        const leaveResult = await EventItemModel.updateOne(
+            { userId: userId, eventId: eventId },
+            { $set: { isLeave: true } }
+        );
+
+        return new SuccessResponse(
+            leaveResult,
+            "You have left the event",
+            null
+        );
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
+const getEventUsers = async (eventId) => {
+    try {
+        const event = await EventModel.findOne({ _id: eventId });
+
+        if (!event) {
+            return new ErrorResponse(404, "Event not found");
+        }
+
+        const eventUsers = await EventItemModel.find({
+            eventId: eventId,
+            isLeave: false,
+        }).populate("userId", "name email");
+
+        if (!eventUsers) {
+            return new ErrorResponse(404, "No users found for this event");
+        }
+
+        const users = [];
+        eventUsers.map((member) => {
+            const userInfo = new ProfileInfoDto(
+                member.userId._id,
+                member.userId.name,
+                member.userId.surname,
+                member.userId.username
+            );
+            users.push(userInfo);
+        });
+
+        return new SuccessResponse(users, "Users found", users.length);
     } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
@@ -199,4 +272,6 @@ export default {
     deleteEvent,
     getAllEvents,
     joinEvent,
+    leaveEvent,
+    getEventUsers,
 };

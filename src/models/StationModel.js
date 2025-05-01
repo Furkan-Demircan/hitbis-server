@@ -1,9 +1,37 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const StationSchema = new Schema({
-	name: { type: String, required: true },
-	country: { type: Schema.Types.ObjectId, ref: "Country", required: true },
-	city: { type: Schema.Types.ObjectId, ref: "City", required: true },
-});
+const StationSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        location: {
+            lat: { type: Number, required: true },
+            lng: { type: Number, required: true },
+        },
+        capacity: {
+            type: Number,
+            required: true,
+        },
+        currentBikeCount: {
+            type: Number,
+            default: 0,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        description: {
+            type: String,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    },
+    { versionKey: false }
+);
 
-export default mongoose.model("Station", StationSchema, "stations");
+export default mongoose.model("Station", StationSchema);

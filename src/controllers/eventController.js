@@ -93,7 +93,7 @@ const getEventUsers = async (req, res) => {
 };
 
 const getUserEvents = async (req, res) => {
-    const userId = req.params.id;
+    const userId = req.query.userId;
 
     if (!userId) {
         return res.json(new ErrorResponse(404, "User not found"));

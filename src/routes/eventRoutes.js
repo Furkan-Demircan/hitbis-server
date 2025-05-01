@@ -31,10 +31,6 @@ eventRoutes.get(
     authenticateMiddleware,
     eventController.getEventUsers
 );
-eventRoutes.get(
-    "/user/:id",
-    authenticateMiddleware,
-    eventController.getUserEvents
-);
+eventRoutes.get("/user", authenticateMiddleware, eventController.getUserEvents);
 
 export default eventRoutes;

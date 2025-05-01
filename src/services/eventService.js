@@ -265,6 +265,34 @@ const getEventUsers = async (eventId) => {
     }
 };
 
+const getUserEvents = async (userId) => {
+    try {
+        const events = await EventItemModel.find({
+            userId: userId,
+            isLeave: false,
+        }).populate("eventId", "title description startDate location");
+
+        if (!events) {
+            return new ErrorResponse(404, "No events found for this user");
+        }
+
+        const eventData = events.map((event) => {
+            return new EventInfoDtos(
+                event.eventId._id,
+                event.eventId.title,
+                event.eventId.description,
+                event.eventId.startDate,
+                event.eventId.location,
+                event.isActive
+            );
+        });
+
+        return new SuccessResponse(eventData, "Events found", eventData.length);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
 export default {
     createEvent,
     getEventById,
@@ -274,4 +302,5 @@ export default {
     joinEvent,
     leaveEvent,
     getEventUsers,
+    getUserEvents,
 };

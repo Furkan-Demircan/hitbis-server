@@ -293,6 +293,35 @@ const getUserEvents = async (userId) => {
     }
 };
 
+const getActiveEventByGroupId = async (groupId) => {
+    try {
+        const event = await EventModel.findOne({
+            groupId: groupId,
+            isActive: true,
+        });
+
+        if (!event) {
+            return new ErrorResponse(
+                404,
+                "No active event found for this group"
+            );
+        }
+
+        const eventData = new EventInfoDtos(
+            event._id,
+            event.title,
+            event.description,
+            event.startDate,
+            event.location,
+            event.isActive
+        );
+
+        return new SuccessResponse(eventData, "Active event found", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
 export default {
     createEvent,
     getEventById,
@@ -303,4 +332,5 @@ export default {
     leaveEvent,
     getEventUsers,
     getUserEvents,
+    getActiveEventByGroupId,
 };

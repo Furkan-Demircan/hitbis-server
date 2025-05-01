@@ -103,6 +103,17 @@ const getUserEvents = async (req, res) => {
     return res.json(result);
 };
 
+const getActiveEventByGroupId = async (req, res) => {
+    const groupId = req.query.groupId;
+
+    if (!groupId) {
+        return res.json(new ErrorResponse(404, "Group not found"));
+    }
+
+    var result = await eventService.getActiveEventByGroupId(groupId);
+    return res.json(result);
+};
+
 export default {
     createEvent,
     getEventById,
@@ -113,4 +124,5 @@ export default {
     leaveEvent,
     getEventUsers,
     getUserEvents,
+    getActiveEventByGroupId,
 };

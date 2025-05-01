@@ -6,6 +6,8 @@ import userRoutes from "./userRoutes.js";
 import eventRoutes from "./eventRoutes.js";
 import routeRoutes from "./routeRoutes.js";
 import activityRoutes from "./activityRoutes.js";
+import stationRoutes from "./stationRoutes.js";
+import stationPocketRoutes from "./stationPocketRoutes.js";
 
 export default {
     userRoutes,
@@ -16,4 +18,6 @@ export default {
     eventRoutes,
     routeRoutes,
     activityRoutes,
+    stationRoutes,
+    stationPocketRoutes,
 };

@@ -121,12 +121,9 @@ const updateEvent = async (eventId, userId, data) => {
             return new ErrorResponse(400, "Event title already exists");
         }
 
-        const updateResult = await EventModel.updateOne(
-            { _id: eventId },
-            { $set: data }
-        );
+        await EventModel.updateOne({ _id: eventId }, { $set: data });
 
-        return new SuccessResponse(updateResult, "Event updated", null);
+        return new SuccessResponse(true, "Event updated", null);
     } catch {
         return new ErrorResponse(500, "Something went wrong");
     }

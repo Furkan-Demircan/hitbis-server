@@ -17,7 +17,7 @@ const createGroup = async (groupData, adminId) => {
         }
 
         if (isGroupExists) {
-            return new ErrorResponse(401, "Group name already use");
+            return new ErrorResponse(401, "Group name is already in use");
         }
 
         var createResult = await GroupModel.create(groupData);
@@ -27,7 +27,11 @@ const createGroup = async (groupData, adminId) => {
             isAdmin: true,
         });
 
-        return new SuccessResponse(addAdmin, "Group create succesfully", null);
+        return new SuccessResponse(
+            addAdmin,
+            "Group created successfully",
+            null
+        );
     } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
@@ -43,6 +47,38 @@ const getAllGroup = async () => {
         return new SuccessResponse(communities, null, communities.length);
     } catch {
         return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
+const getMyGroup = async (userId) => {
+    try {
+        const groupLink = await GroupItemModel.findOne({ userId });
+
+        if (!groupLink) {
+            return new ErrorResponse(404, "You are not in any group");
+        }
+
+        const group = await GroupModel.findById(groupLink.groupId).populate([
+            "country",
+            "city",
+        ]);
+
+        if (!group) {
+            return new ErrorResponse(404, "Group not found");
+        }
+
+        const groupData = new GroupInfoDto(
+            group._id,
+            group.name,
+            group.description,
+            group.isPublic,
+            group.country,
+            group.city
+        );
+
+        return new SuccessResponse(groupData, "Your group retrieved", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
     }
 };
 
@@ -112,8 +148,6 @@ const getUsersInGroup = async (groupId) => {
             users.push(userInfo);
         });
 
-        console.log(users);
-
         return new SuccessResponse(users, null, users.length);
     } catch {
         return new ErrorResponse(500, "Something went wrong");
@@ -154,6 +188,13 @@ const deleteUser = async (groupId, adminId, userId) => {
             return new ErrorResponse(401, "You do not have permission");
         }
 
+        if (userId === adminId) {
+            return new ErrorResponse(
+                403,
+                "You cannot remove yourself from the group"
+            );
+        }
+
         const user = await GroupItemModel.findOne({
             groupId: groupId,
             userId: userId,
@@ -178,6 +219,99 @@ const deleteUser = async (groupId, adminId, userId) => {
     }
 };
 
+const promoteToAdmin = async (groupId, adminId, targetUserId) => {
+    try {
+        const requester = await GroupItemModel.findOne({
+            groupId,
+            userId: adminId,
+            isAdmin: true,
+        });
+
+        if (!requester) {
+            return new ErrorResponse(
+                403,
+                "You are not authorized to promote users"
+            );
+        }
+
+        const target = await GroupItemModel.findOne({
+            groupId,
+            userId: targetUserId,
+        });
+
+        if (!target) {
+            return new ErrorResponse(404, "Target user is not in the group");
+        }
+
+        if (target.isAdmin) {
+            return new ErrorResponse(400, "User is already an admin");
+        }
+
+        target.isAdmin = true;
+        await target.save();
+
+        return new SuccessResponse(target, "User promoted to admin", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const updateGroup = async (groupId, updateData, adminId) => {
+    try {
+        const isAdmin = await GroupItemModel.findOne({
+            groupId,
+            userId: adminId,
+            isAdmin: true,
+        });
+
+        if (!isAdmin) {
+            return new ErrorResponse(
+                403,
+                "You are not authorized to update the group"
+            );
+        }
+
+        const group = await GroupModel.findById(groupId);
+        if (!group) {
+            return new ErrorResponse(404, "Group not found");
+        }
+
+        await GroupModel.findByIdAndUpdate(groupId, {
+            $set: updateData,
+        });
+
+        return new SuccessResponse(true, "Group updated successfully", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const searchGroups = async (keyword) => {
+    try {
+        if (!keyword || keyword.trim() === "") {
+            return new ErrorResponse(400, "Search keyword is required");
+        }
+
+        const regex = new RegExp(keyword, "i");
+
+        const results = await GroupModel.find({
+            name: { $regex: regex },
+        });
+
+        if (!results || results.length === 0) {
+            return new ErrorResponse(404, "No groups found");
+        }
+
+        return new SuccessResponse(
+            results,
+            "Search results retrieved",
+            results.length
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Failed to search groups", error);
+    }
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -186,4 +320,8 @@ export default {
     getUsersInGroup,
     leaveGroup,
     deleteUser,
+    getMyGroup,
+    promoteToAdmin,
+    updateGroup,
+    searchGroups,
 };

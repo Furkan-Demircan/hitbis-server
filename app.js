@@ -19,6 +19,7 @@ app.use("/api/country/", routes.countryRoutes);
 app.use("/api/city/", routes.cityRoutes);
 app.use("/api/event/", routes.eventRoutes);
 app.use("/api/route/", routes.routeRoutes);
+app.use("/api/activity/", routes.activityRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

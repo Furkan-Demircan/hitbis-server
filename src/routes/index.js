@@ -5,6 +5,7 @@ import countryRoutes from "./countryRoutes.js";
 import userRoutes from "./userRoutes.js";
 import eventRoutes from "./eventRoutes.js";
 import routeRoutes from "./routeRoutes.js";
+import activityRoutes from "./activityRoutes.js";
 
 export default {
     userRoutes,
@@ -14,4 +15,5 @@ export default {
     cityRoutes,
     eventRoutes,
     routeRoutes,
+    activityRoutes,
 };

@@ -1,7 +1,10 @@
 import { Router } from "express";
 import routeController from "../controllers/routeController.js";
 import authenticateMiddleware from "../middlewares/authenticationMiddleware.js";
-import { createRouteValidation } from "../validations/routeValidations.js";
+import {
+    createRouteValidation,
+    updateRouteValidation,
+} from "../validations/routeValidations.js";
 import { validator } from "../middlewares/validator.js";
 
 const routeRoutes = Router();
@@ -23,6 +26,7 @@ routeRoutes.delete(
 routeRoutes.get("/search", routeController.searchRoutes);
 routeRoutes.post(
     "/update",
+    validator(updateRouteValidation),
     authenticateMiddleware,
     routeController.updateRoute
 );

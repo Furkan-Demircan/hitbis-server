@@ -42,5 +42,6 @@ eventRoutes.delete(
     authenticateMiddleware,
     eventController.removeUserFromEvent
 );
+eventRoutes.get("/past", eventController.getPastEvents);
 
 export default eventRoutes;

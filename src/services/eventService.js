@@ -316,7 +316,7 @@ const getActiveEventByGroupId = async (groupId) => {
             event.isActive
         );
 
-        return new SuccessResponse(eventData, "Active event found", null);
+        return new SuccessResponse(eventData, "Active event found");
     } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
@@ -363,6 +363,38 @@ const removeUserFromEvent = async (eventId, targetUserId, adminId) => {
     }
 };
 
+const getPastEvents = async (groupId) => {
+    try {
+        const events = await EventModel.find({
+            groupId: groupId,
+            isActive: false,
+        });
+
+        if (!events) {
+            return new ErrorResponse(404, "No past events found");
+        }
+
+        const eventData = events.map((event) => {
+            return new EventInfoDtos(
+                event._id,
+                event.title,
+                event.description,
+                event.startDate,
+                event.location,
+                event.isActive
+            );
+        });
+
+        return new SuccessResponse(
+            eventData,
+            "Past events found",
+            eventData.length
+        );
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
 export default {
     createEvent,
     getEventById,
@@ -375,4 +407,5 @@ export default {
     getUserEvents,
     getActiveEventByGroupId,
     removeUserFromEvent,
+    getPastEvents,
 };

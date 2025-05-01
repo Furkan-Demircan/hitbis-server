@@ -1,0 +1,117 @@
+import ActivityModel from "../models/ActivityModel.js";
+import { SuccessResponse, ErrorResponse } from "../helpers/responseHelper.js";
+
+const logActivity = async (userId, activityData) => {
+    try {
+        if (
+            !userId ||
+            !activityData ||
+            !activityData.startTime ||
+            !activityData.endTime
+        ) {
+            return new ErrorResponse(400, "Missing required activity data");
+        }
+
+        const userActivity = await ActivityModel.create({
+            userId,
+            ...activityData,
+        });
+        return new SuccessResponse(
+            userActivity,
+            "Activity logged successfully",
+            null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const getActivitiyById = async (userId, activityId) => {
+    try {
+        const activity = await ActivityModel.findOne({
+            userId,
+            _id: activityId,
+        });
+
+        if (!activity) {
+            return new ErrorResponse(404, "Activity not found");
+        }
+
+        return new SuccessResponse(
+            activity,
+            "Activity retrieved successfully",
+            null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const getActivitySummary = async (userId) => {
+    try {
+        const activities = await ActivityModel.find({ userId });
+
+        if (!activities || activities.length === 0) {
+            return new ErrorResponse(404, "No activities found");
+        }
+
+        const summary = {
+            totalActivities: activities.length,
+            totalDistance: 0,
+            totalDuration: 0,
+            totalCalories: 0,
+            averageSpeed: 0,
+        };
+
+        let speedSum = 0;
+
+        activities.forEach((act) => {
+            summary.totalDistance += act.distance || 0;
+            summary.totalDuration += act.duration || 0;
+            summary.totalCalories += act.burnedCalories || 0;
+            speedSum += act.avgSpeed || 0;
+        });
+
+        summary.averageSpeed = parseFloat(
+            (speedSum / activities.length).toFixed(2)
+        );
+        summary.totalDistance = parseFloat(summary.totalDistance.toFixed(2));
+        summary.totalCalories = parseInt(summary.totalCalories);
+        summary.totalDuration = parseInt(summary.totalDuration);
+
+        return new SuccessResponse(summary, "Activity summary retrieved", null);
+    } catch (error) {
+        return new ErrorResponse(
+            500,
+            "Failed to retrieve activity summary",
+            error
+        );
+    }
+};
+
+const deleteActivity = async (userId, activityId) => {
+    try {
+        const activity = await ActivityModel.findOneAndDelete({
+            userId,
+            _id: activityId,
+        });
+
+        if (!activity) {
+            return new ErrorResponse(404, "Activity not found");
+        }
+
+        return new SuccessResponse(
+            activity,
+            "Activity deleted successfully",
+            null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+export default {
+    logActivity,
+    getActivitiyById,
+    getActivitySummary,
+    deleteActivity,
+};

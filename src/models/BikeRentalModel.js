@@ -34,9 +34,10 @@ const BikeRentalSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        rfidTag: {
-            type: String,
-            default: null,
+        bikeId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Bike",
+            required: true,
         },
         duration: {
             type: Number, // dakika

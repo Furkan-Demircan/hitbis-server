@@ -1,7 +1,10 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import StationPocketModel from "../models/StationPocketModel.js";
 import UserModel from "../models/UserModel.js";
+import BikeRentalModel from "../models/BikeRentalModel.js";
+import BikeModel from "../models/BikeModel.js";
 
+//ADMIN ONLY
 const createPocket = async (pocketData, userId) => {
     try {
         const isAdmin = await UserModel.findOne({ _id: userId, role: "admin" });
@@ -37,6 +40,7 @@ const createPocket = async (pocketData, userId) => {
     }
 };
 
+//USER ONLY
 const getPocketByQRCode = async (slotCode) => {
     try {
         const pocket = await StationPocketModel.findOne({ slotCode });
@@ -62,4 +66,70 @@ const getPocketByQRCode = async (slotCode) => {
     }
 };
 
-export default { createPocket, getPocketByQRCode };
+const onRFIDDetected = async (slotCode, rfidTag) => {
+    try {
+        // 1. Cebi bul
+        const pocket = await StationPocketModel.findOne({ slotCode });
+        if (!pocket) {
+            return new ErrorResponse(404, "Pocket not found");
+        }
+
+        // 2. Bisikleti RFID ile bul
+        const bike = await BikeModel.findOne({ rfidTag });
+        if (!bike) {
+            return new ErrorResponse(404, "Bike not found for given RFID");
+        }
+
+        // 3. Aktif kiralama var mı?
+        const rental = await BikeRentalModel.findOne({
+            bikeId: bike._id,
+            isReturned: false,
+        });
+
+        if (!rental) {
+            return new ErrorResponse(
+                400,
+                "No active rental found for this bike"
+            );
+        }
+
+        // 4. Kiralama güncelle → iade et
+        const endTime = new Date();
+        const durationMinutes = Math.ceil(
+            (endTime - rental.startTime) / (1000 * 60)
+        );
+        const fee = durationMinutes * 0.5; // örnek: 0.5 ₺/dk
+
+        rental.endTime = endTime;
+        rental.duration = durationMinutes;
+        rental.totalFee = fee;
+        rental.stationId_end = pocket.stationId;
+        rental.isReturned = true;
+        await rental.save();
+
+        // 5. Cebe bisikleti ata
+        pocket.bikeId = bike._id;
+        pocket.isOccupied = true;
+        await pocket.save();
+
+        // 6. Bisiklet müsait hale gelsin
+        bike.isAvailable = true;
+        await bike.save();
+
+        return new SuccessResponse(
+            {
+                rentalId: rental._id,
+                duration: durationMinutes,
+                totalFee: fee,
+                returnedAt: endTime,
+                pocket: pocket.slotCode,
+            },
+            "Bike successfully returned",
+            null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "RFID return failed", error);
+    }
+};
+
+export default { createPocket, getPocketByQRCode, onRFIDDetected };

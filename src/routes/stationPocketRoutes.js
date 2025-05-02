@@ -13,5 +13,9 @@ stationPocketRouter.get(
     authenticateMiddleware,
     stationPocketController.getPocketByQRCode
 );
+stationPocketRouter.post(
+    "/rfid-detected",
+    stationPocketController.onRFIDDetected
+);
 
 export default stationPocketRouter;

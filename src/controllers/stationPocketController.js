@@ -32,4 +32,21 @@ const getPocketByQRCode = async (req, res) => {
     return res.json(result);
 };
 
-export default { createPocket, getPocketByQRCode };
+const onRFIDDetected = async (req, res) => {
+    const { slotCode, rfidTag } = req.body;
+
+    if (!slotCode || !rfidTag) {
+        return res.json(
+            new ErrorResponse(400, "Missing slotCode or rfidTag", null)
+        );
+    }
+
+    const result = await stationPocketService.onRFIDDetected(slotCode, rfidTag);
+    return res.json(result);
+};
+
+export default {
+    createPocket,
+    getPocketByQRCode,
+    onRFIDDetected,
+};

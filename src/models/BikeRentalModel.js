@@ -53,4 +53,5 @@ const BikeRentalSchema = new mongoose.Schema(
     { versionKey: false }
 );
 
-export default mongoose.model("BikeRental", BikeRentalSchema);
+export default mongoose.models.BikeRental ||
+    mongoose.model("BikeRental", BikeRentalSchema);

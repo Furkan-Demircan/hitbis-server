@@ -33,4 +33,5 @@ const StationPocketSchema = new mongoose.Schema(
     { versionKey: false }
 );
 
-export default mongoose.model("StationSlot", StationPocketSchema);
+export default mongoose.models.StationSlot ||
+    mongoose.model("StationSlot", StationPocketSchema);

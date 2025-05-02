@@ -9,6 +9,7 @@ import activityRoutes from "./activityRoutes.js";
 import stationRoutes from "./stationRoutes.js";
 import stationPocketRoutes from "./stationPocketRoutes.js";
 import bikeRoutes from "./bikeRoutes.js";
+import bikeRentalRoutes from "./bikeRentalRoutes.js";
 
 export default {
     userRoutes,
@@ -22,4 +23,5 @@ export default {
     stationRoutes,
     stationPocketRoutes,
     bikeRoutes,
+    bikeRentalRoutes,
 };

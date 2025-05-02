@@ -156,6 +156,7 @@ const clearPocket = async (pocketId) => {
 
         return new SuccessResponse(pocket, "Pocket cleared successfully", null);
     } catch (error) {
+        console.log(error);
         return new ErrorResponse(500, "Failed to clear pocket", error);
     }
 };

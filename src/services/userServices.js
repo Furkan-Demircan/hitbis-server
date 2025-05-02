@@ -150,7 +150,7 @@ const resetPassword = async (userId, userData) => {
     return new SuccessResponse(true, null, null);
   } catch (e) {
     console.log("e", e);
-    return new ErrorResponse(500, "Something went wrong");
+    return new ErrorResponse(500, "Something went wrong");,
   }
 };
 

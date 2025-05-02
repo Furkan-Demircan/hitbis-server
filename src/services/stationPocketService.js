@@ -3,6 +3,7 @@ import StationPocketModel from "../models/StationPocketModel.js";
 import UserModel from "../models/UserModel.js";
 import BikeRentalModel from "../models/BikeRentalModel.js";
 import BikeModel from "../models/BikeModel.js";
+import StationModel from "../models/StationModel.js";
 
 //ADMIN ONLY
 const createPocket = async (pocketData, userId) => {
@@ -10,6 +11,11 @@ const createPocket = async (pocketData, userId) => {
         const isAdmin = await UserModel.findOne({ _id: userId, role: "admin" });
         if (!isAdmin) {
             return new ErrorResponse(403, "Only admins can create pockets");
+        }
+
+        const station = await StationModel.findById(pocketData.stationId);
+        if (!station) {
+            return new ErrorResponse(404, "Station not found");
         }
 
         const existing = await StationPocketModel.findOne({
@@ -132,4 +138,52 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
     }
 };
 
-export default { createPocket, getPocketByQRCode, onRFIDDetected };
+const clearPocket = async (pocketId) => {
+    try {
+        const pocket = await StationPocketModel.findById(pocketId);
+
+        if (!pocket) {
+            return new ErrorResponse(404, "Pocket not found");
+        }
+
+        if (!pocket.isOccupied || !pocket.bikeId) {
+            return new ErrorResponse(400, "Pocket is already empty");
+        }
+
+        pocket.bikeId = null;
+        pocket.isOccupied = false;
+        await pocket.save();
+
+        return new SuccessResponse(pocket, "Pocket cleared successfully", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Failed to clear pocket", error);
+    }
+};
+
+const getPocketStatus = async (stationId) => {
+    try {
+        const pockets = await StationPocketModel.find({ stationId }).select(
+            "slotCode isOccupied"
+        );
+
+        if (!pockets || pockets.length === 0) {
+            return new ErrorResponse(404, "No pockets found for this station");
+        }
+
+        return new SuccessResponse(
+            pockets,
+            "Pocket status retrieved successfully",
+            pockets.length
+        );
+    } catch (err) {
+        return new ErrorResponse(500, "Failed to retrieve pocket status", err);
+    }
+};
+
+export default {
+    createPocket,
+    getPocketByQRCode,
+    onRFIDDetected,
+    clearPocket,
+    getPocketStatus,
+};

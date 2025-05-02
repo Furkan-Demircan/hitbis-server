@@ -45,8 +45,32 @@ const onRFIDDetected = async (req, res) => {
     return res.json(result);
 };
 
+const clearPocket = async (req, res) => {
+    const { pocketId } = req.body;
+
+    if (!pocketId) {
+        return new ErrorResponse(400, "Missing pocketId");
+    }
+
+    var result = await stationPocketService.clearPocket(pocketId);
+    return res.json(result);
+};
+
+const getPocketStatus = async (req, res) => {
+    const { stationId } = req.query;
+
+    if (!stationId) {
+        return res.json(new ErrorResponse(400, "Missing stationId", null));
+    }
+
+    const result = await stationPocketService.getPocketStatus(stationId);
+    return res.json(result);
+};
+
 export default {
     createPocket,
     getPocketByQRCode,
     onRFIDDetected,
+    clearPocket,
+    getPocketStatus,
 };

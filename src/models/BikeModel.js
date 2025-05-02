@@ -7,27 +7,25 @@ const BikeSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
-        stationId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Station",
-            default: null,
-        },
-        isAvailable: {
-            type: Boolean,
-            default: true,
-        },
         rfidTag: {
             type: String,
             required: true,
             unique: true,
         },
-        lastMaintenanceDate: {
-            type: Date,
-            default: Date.now,
+        isAvailable: {
+            type: Boolean,
+            default: true,
         },
         isActive: {
             type: Boolean,
             default: true,
+        },
+        description: {
+            type: String,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
         },
     },
     { versionKey: false }

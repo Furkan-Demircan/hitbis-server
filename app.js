@@ -22,6 +22,7 @@ app.use("/api/route/", routes.routeRoutes);
 app.use("/api/activity/", routes.activityRoutes);
 app.use("/api/station/", routes.stationRoutes);
 app.use("/api/station-pocket/", routes.stationPocketRoutes);
+app.use("/api/bike/", routes.bikeRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

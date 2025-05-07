@@ -7,7 +7,12 @@ import routes from "./src/routes/index.js";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: process.env.CORS_ORIGIN || "*",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+    })
+);
 app.use(json());
 connectToDatabase();
 const port = process.env.APP_PORT || 3000;
@@ -25,6 +30,6 @@ app.use("/api/station-pocket/", routes.stationPocketRoutes);
 app.use("/api/bike/", routes.bikeRoutes);
 app.use("/api/bike-rental/", routes.bikeRentalRoutes);
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
 });

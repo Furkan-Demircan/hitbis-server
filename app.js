@@ -3,6 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectToDatabase from "./src/db/db.js";
 import routes from "./src/routes/index.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 dotenv.config();
 const app = express();
@@ -29,6 +35,7 @@ app.use("/api/station/", routes.stationRoutes);
 app.use("/api/station-pocket/", routes.stationPocketRoutes);
 app.use("/api/bike/", routes.bikeRoutes);
 app.use("/api/bike-rental/", routes.bikeRentalRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);

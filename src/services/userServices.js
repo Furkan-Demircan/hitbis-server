@@ -68,7 +68,9 @@ const getProfileByToken = async (userId) => {
         user.email,
         user.birthDate,
         user.height,
-        user.weight
+        user.weight,
+        user.avatar,
+        user.age
     );
 
     return new SuccessResponse(userProfileData, null, null);
@@ -158,6 +160,20 @@ const resetPassword = async (userId, userData) => {
     }
 };
 
+const uploadAvatar = async (userId, imageUrl) => {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    user.avatar = imageUrl;
+    await user.save();
+
+    return new SuccessResponse(
+        user.avatar,
+        "Avatar uploaded successfully",
+        null
+    );
+};
+
 export default {
     createUser,
     loginUser,
@@ -165,4 +181,5 @@ export default {
     getProfileById,
     editUser,
     resetPassword,
+    uploadAvatar,
 };

@@ -2,6 +2,11 @@ import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema(
     {
+        avatar: {
+            type: String,
+            default:
+                "https://res.cloudinary.com/dqj0xg1zv/image/upload/v1698236482/avatars/default-avatar.png",
+        },
         username: {
             type: String,
             required: true,
@@ -9,9 +14,8 @@ const userSchema = new Schema(
         },
         name: {
             type: String,
-            required: true,
         },
-        surname: { type: String, required: true },
+        surname: { type: String },
         email: {
             type: String,
             required: true,
@@ -21,13 +25,13 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
-        birthDate: {
-            type: Date,
+        age: {
+            type: Number,
         },
         weight: {
             type: Number,
         },
-        height: {
+        lenght: {
             type: Number,
         },
         isSignUpComplete: {

@@ -12,6 +12,14 @@ const ActivitySchema = new mongoose.Schema(
             ref: "Route",
             required: false,
         },
+        name: {
+            type: String,
+            required: true,
+        },
+        description: {
+            type: String,
+            required: false,
+        },
         startTime: {
             type: Date,
             required: true,

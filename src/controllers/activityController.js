@@ -13,6 +13,17 @@ const logActivity = async (req, res) => {
     return res.json(result);
 };
 
+const getUserActivities = async (req, res) => {
+    const userId = req.user.userId;
+
+    if (!userId) {
+        return res.json(new ErrorResponse(404, "User Not Found"));
+    }
+
+    var result = await activityService.getUserActivities(userId);
+    return res.json(result);
+};
+
 const getActivitiyById = async (req, res) => {
     const activityId = req.query.activityId;
     const userId = req.user.userId;
@@ -50,6 +61,7 @@ const deleteActivity = async (req, res) => {
 
 export default {
     logActivity,
+    getUserActivities,
     getActivitiyById,
     getActivitySummary,
     deleteActivity,

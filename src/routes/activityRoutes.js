@@ -12,6 +12,13 @@ activityRoutes.post(
     authenticateMiddleware,
     activityController.logActivity
 );
+
+activityRoutes.get(
+    "/all",
+    authenticateMiddleware,
+    activityController.getUserActivities
+);
+
 activityRoutes.get(
     "/details",
     authenticateMiddleware,

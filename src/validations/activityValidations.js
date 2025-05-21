@@ -14,6 +14,8 @@ const heartRateSchema = z.object({
 export const createActivityValidation = z.object({
     routeId: z.string().optional(),
     startTime: z.coerce.date(),
+    name: z.string().min(1).max(100),
+    description: z.string().optional(),
     endTime: z.coerce.date(),
     duration: z.number().min(1),
     distance: z.number().min(0),

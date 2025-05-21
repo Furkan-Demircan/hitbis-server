@@ -1,4 +1,5 @@
 import ActivityModel from "../models/ActivityModel.js";
+import UserModel from "../models/UserModel.js";
 import { SuccessResponse, ErrorResponse } from "../helpers/responseHelper.js";
 
 const logActivity = async (userId, activityData) => {
@@ -41,6 +42,30 @@ const getActivitiyById = async (userId, activityId) => {
             activity,
             "Activity retrieved successfully",
             null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const getUserActivities = async (userId) => {
+    try {
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+            return new ErrorResponse(404, "User not found");
+        }
+
+        const activities = await ActivityModel.find({ userId });
+        console.log(activities);
+        if (!activities || activities.length === 0) {
+            return new ErrorResponse(404, "No activities found");
+        }
+
+        return new SuccessResponse(
+            activities,
+            "Activities retrieved successfully",
+            activities.length
         );
     } catch (error) {
         return new ErrorResponse(500, "Something went wrong", error);
@@ -109,8 +134,10 @@ const deleteActivity = async (userId, activityId) => {
         return new ErrorResponse(500, "Something went wrong", error);
     }
 };
+
 export default {
     logActivity,
+    getUserActivities,
     getActivitiyById,
     getActivitySummary,
     deleteActivity,

@@ -25,7 +25,7 @@ activityRoutes.get(
     activityController.getActivitiyById
 );
 activityRoutes.get(
-    "/summary",
+    "/stats",
     authenticateMiddleware,
     activityController.getActivitySummary
 );

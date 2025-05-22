@@ -77,7 +77,17 @@ const getActivitySummary = async (userId) => {
         const activities = await ActivityModel.find({ userId });
 
         if (!activities || activities.length === 0) {
-            return new ErrorResponse(404, "No activities found");
+            return new SuccessResponse(
+                {
+                    totalActivities: 0,
+                    totalDistance: 0,
+                    totalDuration: 0,
+                    totalCalories: 0,
+                    averageSpeed: 0,
+                },
+                "No activities found",
+                null
+            );
         }
 
         const summary = {

@@ -5,7 +5,7 @@ const userSchema = new Schema(
         avatar: {
             type: String,
             default:
-                "https://res.cloudinary.com/dqj0xg1zv/image/upload/v1698236482/avatars/default-avatar.png",
+                "https://res.cloudinary.com/dcjfzpzpb/image/upload/v1747907980/ZV9iYWNrZ3JvdW5kX3JlbW92YWwvZl9wbmc_gmdpvn_c_crop_w_430_h_430_ar_1_1_knwdrw.png",
         },
         username: {
             type: String,

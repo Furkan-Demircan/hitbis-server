@@ -57,7 +57,6 @@ const getUserActivities = async (userId) => {
         }
 
         const activities = await ActivityModel.find({ userId });
-        console.log(activities);
         if (!activities || activities.length === 0) {
             return new ErrorResponse(404, "No activities found");
         }

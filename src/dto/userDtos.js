@@ -2,12 +2,12 @@ export class ProfileInfoDto {
     id;
     name;
     surname;
-    username;
-    constructor(id, name, surname, username) {
+    avatar;
+    constructor(id, name, surname, avatar) {
         this.id = id;
         this.name = name;
         this.surname = surname;
-        this.username = username;
+        this.avatar = avatar;
     }
 }
 

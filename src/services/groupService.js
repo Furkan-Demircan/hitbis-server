@@ -366,9 +366,9 @@ const findUserGroup = async (userId) => {
     }
 };
 
-const isMember = async (userId) => {
+const isMember = async (groupId, userId) => {
     try {
-        const groupLink = await GroupItemModel.findOne({ userId });
+        const groupLink = await GroupItemModel.findOne({ userId, groupId });
 
         if (!groupLink) {
             return new SuccessResponse(

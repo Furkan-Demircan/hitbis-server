@@ -336,7 +336,7 @@ const findUserGroup = async (userId) => {
         const groupLink = await GroupItemModel.findOne({ userId });
 
         if (!groupLink) {
-            return new SuccessResponse(false, "You are not in any group", null);
+            return new SuccessResponse(null, "You are not in any group", null);
         }
 
         const group = await GroupModel.findById(groupLink.groupId).populate([
@@ -366,6 +366,24 @@ const findUserGroup = async (userId) => {
     }
 };
 
+const isMember = async (userId) => {
+    try {
+        const groupLink = await GroupItemModel.findOne({ userId });
+
+        if (!groupLink) {
+            return new SuccessResponse(
+                false,
+                "User is not a member of any group",
+                null
+            );
+        }
+
+        return new SuccessResponse(true, "User is a member of a group", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -380,4 +398,5 @@ export default {
     searchGroups,
     getGroupMemberCount,
     findUserGroup,
+    isMember,
 };

@@ -137,6 +137,18 @@ const findUserGroup = async (req, res) => {
     return res.json(result);
 };
 
+const isMember = async (req, res) => {
+    const groupId = req.query.groupId;
+    const userId = req.user.userId;
+
+    if (!groupId) {
+        return res.json(new ErrorResponse(404, "Group not found"));
+    }
+
+    var result = await groupService.isMember(groupId, userId);
+    return res.json(result);
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -151,4 +163,5 @@ export default {
     searchGroups,
     getGroupMemberCount,
     findUserGroup,
+    isMember,
 };

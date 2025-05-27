@@ -47,4 +47,6 @@ groupRoutes.put(
 groupRoutes.get("/search", groupController.searchGroups);
 
 groupRoutes.get("/find", authenticateMiddleware, groupController.findUserGroup);
+
+groupRoutes.get("/ismember", authenticateMiddleware, groupController.isMember);
 export default groupRoutes;

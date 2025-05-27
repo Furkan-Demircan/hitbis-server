@@ -7,4 +7,6 @@ countryRoutes.get("/getall", countryController.getAllCountries);
 
 countryRoutes.get("/getCountryCities", countryController.getCountryCities);
 
+countryRoutes.get("/getCountryById", countryController.getCountryById);
+
 export default countryRoutes;

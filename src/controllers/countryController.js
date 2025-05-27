@@ -15,4 +15,13 @@ const getCountryCities = async (req, res) => {
     return res.json(result);
 };
 
-export default { getAllCountries, getCountryCities };
+const getCountryById = async (req, res) => {
+    const countryId = req.query.countryId;
+    if (!countryId) {
+        return res.json(new ErrorResponse(404, "CountryId not set."));
+    }
+    var result = await countryService.getCountryById(countryId);
+    return res.json(result);
+};
+
+export default { getAllCountries, getCountryCities, getCountryById };

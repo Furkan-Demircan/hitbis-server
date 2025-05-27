@@ -15,7 +15,7 @@ groupRoutes.post(
     validator(createGroupValidation),
     groupController.createGroup
 );
-groupRoutes.get("/groups", groupController.getAllGroup);
+groupRoutes.get("/all", groupController.getAllGroup);
 groupRoutes.get("/group", groupController.getGroupById);
 groupRoutes.post("/join", authenticateMiddleware, groupController.joinGroup);
 groupRoutes.get("/getusers", groupController.getUsersInGroup);

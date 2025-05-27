@@ -119,6 +119,24 @@ const searchGroups = async (req, res) => {
     return res.json(result);
 };
 
+const getGroupMemberCount = async (req, res) => {
+    const groupId = req.query.groupId;
+
+    if (!groupId) {
+        return res.json(new ErrorResponse(404, "Group not found"));
+    }
+
+    var result = await groupService.getGroupMemberCount(groupId);
+    return res.json(result);
+};
+
+const findUserGroup = async (req, res) => {
+    const userId = req.user.userId;
+
+    var result = await groupService.findUserGroup(userId);
+    return res.json(result);
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -131,4 +149,6 @@ export default {
     promoteToAdmin,
     updateGroup,
     searchGroups,
+    getGroupMemberCount,
+    findUserGroup,
 };

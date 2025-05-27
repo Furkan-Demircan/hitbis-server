@@ -19,6 +19,7 @@ groupRoutes.get("/all", groupController.getAllGroup);
 groupRoutes.get("/group", groupController.getGroupById);
 groupRoutes.post("/join", authenticateMiddleware, groupController.joinGroup);
 groupRoutes.get("/getusers", groupController.getUsersInGroup);
+groupRoutes.get("/usercount", groupController.getGroupMemberCount);
 groupRoutes.delete(
     "/leave",
     authenticateMiddleware,
@@ -29,7 +30,6 @@ groupRoutes.delete(
     authenticateMiddleware,
     groupController.deleteUser
 );
-
 groupRoutes.get("/my", authenticateMiddleware, groupController.getMyGroup);
 groupRoutes.put(
     "/promote",
@@ -45,4 +45,6 @@ groupRoutes.put(
 );
 
 groupRoutes.get("/search", groupController.searchGroups);
+
+groupRoutes.get("/find", authenticateMiddleware, groupController.findUserGroup);
 export default groupRoutes;

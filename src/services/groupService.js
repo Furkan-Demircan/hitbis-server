@@ -143,7 +143,7 @@ const getUsersInGroup = async (groupId) => {
                 member.userId._id,
                 member.userId.name,
                 member.userId.surname,
-                member.userId.username
+                member.userId.avatar
             );
             users.push(userInfo);
         });
@@ -312,6 +312,60 @@ const searchGroups = async (keyword) => {
     }
 };
 
+const getGroupMemberCount = async (groupId) => {
+    try {
+        const group = await GroupItemModel.find({
+            groupId: groupId,
+        });
+        if (!group) {
+            return new ErrorResponse(404, "Group not found");
+        }
+        const memberCount = group.length;
+        return new SuccessResponse(
+            memberCount,
+            "Group member count retrieved",
+            null
+        );
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
+const findUserGroup = async (userId) => {
+    try {
+        const groupLink = await GroupItemModel.findOne({ userId });
+
+        if (!groupLink) {
+            return new SuccessResponse(false, "You are not in any group", null);
+        }
+
+        const group = await GroupModel.findById(groupLink.groupId).populate([
+            "country",
+            "city",
+        ]);
+
+        if (!group) {
+            return new ErrorResponse(404, "Group not found");
+        }
+
+        const groupData = new GroupInfoDto(
+            group._id,
+            group.name,
+            group.description,
+            group.isPublic,
+            // @ts-ignore
+            group.country,
+            // @ts-ignore
+            group.city,
+            group.imageUrl
+        );
+
+        return new SuccessResponse(groupData, "Your group retrieved", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -324,4 +378,6 @@ export default {
     promoteToAdmin,
     updateGroup,
     searchGroups,
+    getGroupMemberCount,
+    findUserGroup,
 };

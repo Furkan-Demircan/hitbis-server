@@ -165,6 +165,26 @@ const leaveGroup = async (groupId, userId) => {
             return new ErrorResponse(404, "User not found in group");
         }
 
+        const isAdmin = await GroupItemModel.findOne({
+            groupId: groupId,
+            userId: userId,
+            isAdmin: true,
+        });
+
+        if (isAdmin) {
+            const adminCount = await GroupItemModel.countDocuments({
+                groupId,
+                role: "admin",
+            });
+
+            if (adminCount <= 1) {
+                return new ErrorResponse(
+                    403,
+                    "Grubun tek yöneticisisiniz. Ayrılmadan önce başka bir kullanıcıyı yönetici yapmalısınız."
+                );
+            }
+        }
+
         var deleteResult = await GroupItemModel.findOneAndDelete({
             groupId: groupId,
             userId: userId,
@@ -384,6 +404,28 @@ const isMember = async (groupId, userId) => {
     }
 };
 
+const isAdmin = async (groupId, userId) => {
+    try {
+        const groupLink = await GroupItemModel.findOne({
+            userId,
+            groupId,
+            isAdmin: true,
+        });
+
+        if (!groupLink) {
+            return new SuccessResponse(
+                false,
+                "User is not an admin of the group",
+                null
+            );
+        }
+
+        return new SuccessResponse(true, "User is an admin of the group", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Something went wrong", error);
+    }
+};
+
 export default {
     createGroup,
     getAllGroup,
@@ -399,4 +441,5 @@ export default {
     getGroupMemberCount,
     findUserGroup,
     isMember,
+    isAdmin,
 };

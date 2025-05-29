@@ -12,6 +12,11 @@ const EventSchema = new Schema({
         required: true,
     },
     groupId: { type: Schema.Types.ObjectId, ref: "Group", required: true },
+    difficulty: {
+        type: String,
+        enum: ["Easy", "Medium", "Hard"],
+        default: "Medium",
+    },
     isActive: { type: Boolean, default: true },
     isPublic: { type: Boolean, default: false },
 });

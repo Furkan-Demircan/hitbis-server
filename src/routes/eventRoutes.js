@@ -9,7 +9,7 @@ const eventRoutes = Router();
 eventRoutes.post(
     "/create",
     authenticateMiddleware,
-    validator(createEventValidation),
+
     eventController.createEvent
 );
 eventRoutes.get("/", eventController.getEventById);

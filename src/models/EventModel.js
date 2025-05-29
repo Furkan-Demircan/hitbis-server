@@ -3,11 +3,14 @@ import mongoose, { Schema } from "mongoose";
 const EventSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
-    startDate: { type: Date, required: true },
+    startDate: {
+        type: Date,
+        required: true,
+    },
     location: {
         type: new Schema({
             longitude: { type: String, required: true },
-            altitude: { type: String, required: true },
+            latitude: { type: String, required: true },
         }),
         required: true,
     },

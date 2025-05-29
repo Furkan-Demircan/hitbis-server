@@ -9,23 +9,25 @@ import { ProfileInfoDto } from "../dto/userDtos.js";
 const createEvent = async (groupId, adminId, eventData) => {
     try {
         const group = await GroupModel.findOne({ _id: groupId });
-        const existingAdmin = await GroupItemModel.findOne({
-            groupId: groupId,
-            userId: adminId,
-            isAdmin: true,
-        });
-        const existingEvent = await EventModel.findOne({
-            groupId: groupId,
-            isActive: true,
-        });
 
         if (!group) {
             return new ErrorResponse(404, "Group not found");
         }
 
+        const existingAdmin = await GroupItemModel.findOne({
+            groupId: groupId,
+            userId: adminId,
+            isAdmin: true,
+        });
+
         if (!existingAdmin) {
             return new ErrorResponse(401, "You do not have permission");
         }
+
+        const existingEvent = await EventModel.findOne({
+            groupId: groupId,
+            isActive: true,
+        });
 
         if (existingEvent) {
             return new ErrorResponse(400, "There is already an active event");
@@ -43,7 +45,8 @@ const createEvent = async (groupId, adminId, eventData) => {
         });
 
         return new SuccessResponse(addAdminResult, "Event created", null);
-    } catch {
+    } catch (error) {
+        console.error("Error creating event:", error);
         return new ErrorResponse(500, "Something went wrong");
     }
 };

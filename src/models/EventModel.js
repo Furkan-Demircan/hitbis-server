@@ -22,6 +22,11 @@ const EventSchema = new Schema({
     },
     isActive: { type: Boolean, default: true },
     isPublic: { type: Boolean, default: false },
+    imageUrl: {
+        type: String,
+        default:
+            "https://res.cloudinary.com/dcjfzpzpb/image/upload/v1748876730/ChatGPT_Image_2_Haz_2025_18_04_56_1_jk6pg3.png",
+    },
 });
 
 export default mongoose.model("Event", EventSchema, "events");

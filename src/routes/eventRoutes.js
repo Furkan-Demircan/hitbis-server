@@ -1,7 +1,5 @@
 import { Router } from "express";
 import eventController from "../controllers/eventController.js";
-import { validator } from "../middlewares/validator.js";
-import { createEventValidation } from "../validations/eventValidations.js";
 import authenticateMiddleware from "../middlewares/authenticationMiddleware.js";
 
 const eventRoutes = Router();
@@ -42,5 +40,11 @@ eventRoutes.delete(
     eventController.removeUserFromEvent
 );
 eventRoutes.get("/past", eventController.getPastEvents);
+eventRoutes.get("/user/count", eventController.getEventUsersCount);
+eventRoutes.get(
+    "/isuserinevent",
+    authenticateMiddleware,
+    eventController.isUserInEvent
+);
 
 export default eventRoutes;

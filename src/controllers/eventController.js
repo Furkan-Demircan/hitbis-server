@@ -146,6 +146,28 @@ const getPastEvents = async (req, res) => {
     return res.json(result);
 };
 
+const getEventUsersCount = async (req, res) => {
+    const eventId = req.query.eventId;
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "User not found"));
+    }
+
+    var result = await eventService.getEventUsersCount(eventId);
+    return res.json(result);
+};
+const isUserInEvent = async (req, res) => {
+    const eventId = req.query.eventId;
+    const userId = req.user.userId;
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "Event not found"));
+    }
+
+    var result = await eventService.isUserInEvent(eventId, userId);
+    return res.json(result);
+};
+
 export default {
     createEvent,
     getEventById,
@@ -159,4 +181,6 @@ export default {
     getActiveEventByGroupId,
     removeUserFromEvent,
     getPastEvents,
+    getEventUsersCount,
+    isUserInEvent,
 };

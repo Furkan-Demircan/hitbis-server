@@ -64,7 +64,9 @@ const getEventById = async (eventId) => {
             event.description,
             event.startDate,
             event.location,
-            event.isActive
+            event.isActive,
+            event.difficulty,
+            event.imageUrl
         );
 
         return new SuccessResponse(eventData, "Event found", null);
@@ -87,7 +89,9 @@ const getAllEvents = async (groupId) => {
                 event.description,
                 event.startDate,
                 event.location,
-                event.isActive
+                event.isActive,
+                event.difficulty,
+                event.imageUrl
             );
         });
 
@@ -163,22 +167,25 @@ const deleteEvent = async (eventId, userId) => {
 const joinEvent = async (eventId, userId) => {
     try {
         const event = await EventModel.findOne({ _id: eventId });
-        const isGroupUser = await GroupItemModel.findOne({
-            groupId: event.groupId,
-            userId: userId,
-        });
-        const existingUser = await EventItemModel.findOne({
-            eventId: eventId,
-            userId: userId,
-        });
 
         if (!event) {
             return new ErrorResponse(404, "Event not found");
         }
 
+        const isGroupUser = await GroupItemModel.findOne({
+            groupId: event.groupId,
+            userId: userId,
+        });
+
         if (!isGroupUser) {
             return new ErrorResponse(401, "You do not have permission");
         }
+
+        const existingUser = await EventItemModel.findOne({
+            eventId: eventId,
+            userId: userId,
+            isLeave: false,
+        });
 
         if (existingUser) {
             return new ErrorResponse(400, "You are already a participant");
@@ -242,7 +249,7 @@ const getEventUsers = async (eventId) => {
         const eventUsers = await EventItemModel.find({
             eventId: eventId,
             isLeave: false,
-        }).populate("userId", "name email");
+        }).populate("userId", "name surname avatar");
 
         if (!eventUsers) {
             return new ErrorResponse(404, "No users found for this event");
@@ -254,7 +261,7 @@ const getEventUsers = async (eventId) => {
                 member.userId._id,
                 member.userId.name,
                 member.userId.surname,
-                member.userId.username
+                member.userId.avatar
             );
             users.push(userInfo);
         });
@@ -313,7 +320,9 @@ const getActiveEventByGroupId = async (groupId) => {
             event.description,
             event.startDate,
             event.location,
-            event.isActive
+            event.isActive,
+            event.difficulty,
+            event.imageUrl
         );
 
         return new SuccessResponse(eventData, "Active event found");
@@ -381,7 +390,9 @@ const getPastEvents = async (groupId) => {
                 event.description,
                 event.startDate,
                 event.location,
-                event.isActive
+                event.isActive,
+                event.difficulty,
+                event.imageUrl
             );
         });
 
@@ -390,6 +401,42 @@ const getPastEvents = async (groupId) => {
             "Past events found",
             eventData.length
         );
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
+const getEventUsersCount = async (eventId) => {
+    try {
+        const event = await EventModel.findOne({ _id: eventId });
+
+        if (!event) {
+            return new ErrorResponse(404, "Event not found");
+        }
+
+        const count = await EventItemModel.countDocuments({
+            eventId: eventId,
+            isLeave: false,
+        });
+
+        return new SuccessResponse(count, "User count retrieved", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
+const isUserInEvent = async (eventId, userId) => {
+    try {
+        const event = await EventItemModel.findOne({
+            eventId: eventId,
+            userId: userId,
+            isLeave: false,
+        });
+
+        if (!event) {
+            return new ErrorResponse(404, "User not found in this event");
+        }
+        return new SuccessResponse(true, "User is in the event", null);
     } catch {
         return new ErrorResponse(500, "Something went wrong");
     }
@@ -408,4 +455,6 @@ export default {
     getActiveEventByGroupId,
     removeUserFromEvent,
     getPastEvents,
+    getEventUsersCount,
+    isUserInEvent,
 };

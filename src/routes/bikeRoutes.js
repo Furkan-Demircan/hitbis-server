@@ -6,5 +6,6 @@ const bikeRoutes = Router();
 
 bikeRoutes.post("/create", authenticateMiddleware, bikeController.createBike);
 bikeRoutes.get("/details", bikeController.getBikeDetails);
+bikeRoutes.post("/rfid-return", bikeController.rfidReturnBike);
 
 export default bikeRoutes;

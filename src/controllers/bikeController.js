@@ -23,4 +23,20 @@ const getBikeDetails = async (req, res) => {
     return res.json(result);
 };
 
-export default { createBike, getBikeDetails };
+const rfidReturnBike = async (req, res) => {
+    const rfidTag = req.body.rfidTag;
+
+    if (!rfidTag) {
+        return new ErrorResponse("RFID tag is required", 400);
+    }
+
+    const slotCode = req.body.slotCode;
+    if (!slotCode) {
+        return new ErrorResponse("Slot code is required", 400);
+    }
+
+    var result = await bikeService.rfidReturnBike(rfidTag, slotCode);
+    res.json(result);
+};
+
+export default { createBike, getBikeDetails, rfidReturnBike };

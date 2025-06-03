@@ -1,6 +1,7 @@
 import BikeModel from "../models/BikeModel.js";
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import UserModel from "../models/UserModel.js";
+import onRFIDDetected from "../services/stationPocketService.js";
 
 const createBike = async (bikeData, userId) => {
     try {
@@ -51,4 +52,14 @@ const getBikeDetails = async (bikeId) => {
     );
 };
 
-export default { createBike, getBikeDetails };
+const rfidReturnBike = async (rfidTag, slotCode) => {
+    const result = await onRFIDDetected(slotCode, rfidTag);
+
+    if (result.data.success == false) {
+        return new ErrorResponse(400, result.error);
+    }
+
+    return new SuccessResponse(result.data, "Bike returned successfully", null);
+};
+
+export default { createBike, getBikeDetails, rfidReturnBike };

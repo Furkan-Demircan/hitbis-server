@@ -168,6 +168,18 @@ const isUserInEvent = async (req, res) => {
     return res.json(result);
 };
 
+const isAdmin = async (req, res) => {
+    const eventId = req.query.eventId;
+    const userId = req.user.userId;
+
+    if (!eventId) {
+        return res.json(new ErrorResponse(404, "Event not found"));
+    }
+
+    var result = await eventService.isAdmin(eventId, userId);
+    return res.json(result);
+};
+
 export default {
     createEvent,
     getEventById,
@@ -183,4 +195,5 @@ export default {
     getPastEvents,
     getEventUsersCount,
     isUserInEvent,
+    isAdmin,
 };

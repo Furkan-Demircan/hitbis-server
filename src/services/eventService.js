@@ -191,6 +191,24 @@ const joinEvent = async (eventId, userId) => {
             return new ErrorResponse(400, "You are already a participant");
         }
 
+        const isLeavedUser = await EventItemModel.findOne({
+            eventId: eventId,
+            userId: userId,
+            isLeave: true,
+        });
+
+        if (isLeavedUser) {
+            const rejoinResult = await EventItemModel.updateOne(
+                { userId: userId, eventId: eventId },
+                { $set: { isLeave: false } }
+            );
+            return new SuccessResponse(
+                rejoinResult,
+                "You have rejoined the event",
+                null
+            );
+        }
+
         const joinResult = await EventItemModel.create({
             eventId: eventId,
             userId: userId,
@@ -442,6 +460,22 @@ const isUserInEvent = async (eventId, userId) => {
     }
 };
 
+const isAdmin = async (eventId, userId) => {
+    try {
+        const isAdmin = await EventItemModel.findOne({
+            eventId: eventId,
+            userId: userId,
+            isAdmin: true,
+        });
+        if (isAdmin) {
+            return new SuccessResponse(true, "User is an admin", null);
+        }
+        return new SuccessResponse(false, "User is not an admin", null);
+    } catch {
+        return new ErrorResponse(500, "Something went wrong");
+    }
+};
+
 export default {
     createEvent,
     getEventById,
@@ -457,4 +491,5 @@ export default {
     getPastEvents,
     getEventUsersCount,
     isUserInEvent,
+    isAdmin,
 };

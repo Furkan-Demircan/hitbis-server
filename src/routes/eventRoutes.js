@@ -46,5 +46,6 @@ eventRoutes.get(
     authenticateMiddleware,
     eventController.isUserInEvent
 );
+eventRoutes.get("/isAdmin", authenticateMiddleware, eventController.isAdmin);
 
 export default eventRoutes;

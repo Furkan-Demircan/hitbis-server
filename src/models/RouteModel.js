@@ -32,15 +32,19 @@ const RouteSchema = new mongoose.Schema(
         },
         difficulty: {
             type: String,
-            enum: ["easy", "medium", "hard"],
-            default: "medium",
+            enum: ["Easy", "Medium", "Hard"],
+            default: "Medium",
         },
         estimatedTime: {
-            type: Number, // dakika
+            type: String, // dakika
         },
         createdAt: {
             type: Date,
             default: Date.now,
+        },
+        polyline: {
+            type: String, // Polyline encoded string
+            required: true,
         },
     },
     { versionKey: false }

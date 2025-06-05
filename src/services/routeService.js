@@ -1,15 +1,17 @@
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import RouteModel from "../models/RouteModel.js";
-
+import UserModel from "../models/UserModel.js";
 const createRoute = async (routeData, userId) => {
     try {
-        if (!userId) {
+        const user = await UserModel.findById(userId);
+        if (!user) {
             return new ErrorResponse(404, "User Not Found", null);
         }
 
         if (!routeData) {
             return new ErrorResponse(400, "Route Data Not Found", null);
         }
+        console.log(routeData);
 
         const createdRoute = await RouteModel.create({
             ...routeData,

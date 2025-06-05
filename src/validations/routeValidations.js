@@ -14,8 +14,9 @@ export const createRouteValidation = z.object({
     distance: z.number().optional(),
     elevationGain: z.number().optional(),
     isPublic: z.boolean().optional(),
-    difficulty: z.enum(["easy", "medium", "hard"]).optional(),
-    estimatedTime: z.number().optional(),
+    difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
+    estimatedTime: z.string().optional(),
+    polyline: z.string().min(1, "Polyline is required"),
 });
 
 export const updateRouteValidation = z.object({

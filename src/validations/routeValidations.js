@@ -10,7 +10,8 @@ export const createRouteValidation = z.object({
                 lng: z.number(),
             })
         )
-        .min(2),
+        .min(2)
+        .optional(),
     distance: z.number().optional(),
     elevationGain: z.number().optional(),
     isPublic: z.boolean().optional(),

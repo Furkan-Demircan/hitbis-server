@@ -10,7 +10,7 @@ const ActivitySchema = new mongoose.Schema(
         routeId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Route",
-            required: false,
+            default: null,
         },
         name: {
             type: String,
@@ -19,6 +19,11 @@ const ActivitySchema = new mongoose.Schema(
         description: {
             type: String,
             required: false,
+        },
+        difficulty: {
+            type: String,
+            enum: ["Easy", "Medium", "Hard"],
+            default: "Medium",
         },
         startTime: {
             type: Date,
@@ -34,35 +39,26 @@ const ActivitySchema = new mongoose.Schema(
         },
         distance: {
             type: Number, // km
+            required: true,
         },
         avgSpeed: {
             type: Number, // km/h
+            required: true,
         },
         elevationGain: {
             type: Number, // metre
+            required: false,
         },
         burnedCalories: {
             type: Number,
+            required: true,
         },
-        gpsTrack: [
-            {
-                lat: Number,
-                lng: Number,
-                timestamp: Date,
-            },
-        ],
-        heartRateData: [
-            {
-                bpm: Number,
-                timestamp: Date,
-            },
-        ],
-        createdAt: {
-            type: Date,
-            default: Date.now,
+        encodedPolyline: {
+            type: String,
+            required: true,
         },
     },
-    { versionKey: false }
+    { timestamps: true }
 );
 
 export default mongoose.model("Activity", ActivitySchema);

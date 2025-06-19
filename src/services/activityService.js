@@ -4,24 +4,41 @@ import { SuccessResponse, ErrorResponse } from "../helpers/responseHelper.js";
 
 const logActivity = async (userId, activityData) => {
     try {
-        if (
-            !userId ||
-            !activityData ||
-            !activityData.startTime ||
-            !activityData.endTime
-        ) {
-            return new ErrorResponse(400, "Missing required activity data");
+        const requiredFields = [
+            "name",
+            "startTime",
+            "endTime",
+            "duration",
+            "distance",
+            "difficulty",
+            "avgSpeed",
+            "burnedCalories",
+            "encodedPolyline",
+        ];
+
+        for (const field of requiredFields) {
+            if (!activityData[field]) {
+                return new ErrorResponse(400, `Missing field: ${field}`);
+            }
         }
 
-        const userActivity = await ActivityModel.create({
+        const activity = await ActivityModel.create({
             userId,
-            ...activityData,
+            name: activityData.name,
+            description: activityData.description || "",
+            routeId: activityData.routeId || null,
+            startTime: new Date(activityData.startTime),
+            endTime: new Date(activityData.endTime),
+            duration: activityData.duration,
+            difficulty: activityData.difficulty || "Medium",
+            distance: activityData.distance,
+            avgSpeed: activityData.avgSpeed,
+            elevationGain: activityData.elevationGain,
+            burnedCalories: activityData.burnedCalories,
+            encodedPolyline: activityData.encodedPolyline,
         });
-        return new SuccessResponse(
-            userActivity,
-            "Activity logged successfully",
-            null
-        );
+
+        return new SuccessResponse(activity, "Activity logged successfully");
     } catch (error) {
         return new ErrorResponse(500, "Something went wrong", error);
     }

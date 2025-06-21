@@ -143,7 +143,8 @@ const getUsersInGroup = async (groupId) => {
                 member.userId._id,
                 member.userId.name,
                 member.userId.surname,
-                member.userId.avatar
+                member.userId.avatar,
+                member.isAdmin
             );
             users.push(userInfo);
         });

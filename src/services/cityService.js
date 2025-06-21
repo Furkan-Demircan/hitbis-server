@@ -1,5 +1,5 @@
 import { SuccessResponse } from "../helpers/responseHelper.js";
-import cityModel from "../models/cityModel.js";
+import cityModel from "../models/CityModel.js";
 
 const getCityByCountryId = async (countryId) => {
     const cities = await cityModel.find({ countryId });

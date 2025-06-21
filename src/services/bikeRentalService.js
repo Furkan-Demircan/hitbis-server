@@ -1,7 +1,7 @@
 import BikeRentalModel from "../models/BikeRentalModel.js";
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
-import StationPocketModel from "../models/stationPocketModel.js";
-import BikeModel from "../models/bikeModel.js";
+import StationPocketModel from "../models/StationPocketModel.js";
+import BikeModel from "../models/BikeModel.js";
 
 const rentBike = async (slotCode, userId) => {
     try {

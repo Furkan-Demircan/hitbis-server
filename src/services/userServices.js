@@ -67,7 +67,7 @@ const getProfileByToken = async (userId) => {
         user.username,
         user.email,
         user.birthDate,
-        user.height,
+        user.lenght,
         user.weight,
         user.avatar,
         user.age

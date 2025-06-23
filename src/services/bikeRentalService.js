@@ -2,12 +2,11 @@ import BikeRentalModel from "../models/BikeRentalModel.js";
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import StationPocketModel from "../models/StationPocketModel.js";
 import BikeModel from "../models/BikeModel.js";
+import stationPocketService from "./stationPocketService.js"; // ✅ MQTT ile kilit açmak için
 
 const rentBike = async (slotCode, userId) => {
     try {
-        const pocket = await StationPocketModel.findOne({
-            slotCode: slotCode,
-        });
+        const pocket = await StationPocketModel.findOne({ slotCode });
 
         if (!pocket) {
             return new ErrorResponse(404, "Slot not found");
@@ -40,7 +39,9 @@ const rentBike = async (slotCode, userId) => {
             return new ErrorResponse(500, "Failed to create rental record");
         }
 
-        pocket.BikeId = null;
+        await stationPocketService.unlockPocket(slotCode);
+
+        pocket.bikeId = null;
         pocket.isOccupied = false;
         await pocket.save();
 

@@ -5,7 +5,40 @@ import BikeRentalModel from "../models/BikeRentalModel.js";
 import BikeModel from "../models/BikeModel.js";
 import StationModel from "../models/StationModel.js";
 
-//ADMIN ONLY
+const unlockPocket = async (slotCode) => {
+    try {
+        const pocket = await StationPocketModel.findOne({ slotCode });
+        if (!pocket) return new ErrorResponse(404, "Pocket not found");
+
+        if (!pocket.bikeId || !pocket.isOccupied) {
+            return new ErrorResponse(400, "No bike to unlock in this slot");
+        }
+
+        const payload = {
+            command: "open",
+            slotCode: slotCode,
+        };
+
+        const { publishMqttMessage,
+            TOPIC_LOCK_OPEN_COMMAND_PREFIX,
+            TOPIC_LOCK_OPEN_COMMAND_SUFFIX
+        } = await import("../services/mqttServices.js");
+
+        const stationId = pocket.stationId.toString();
+        publishMqttMessage(
+            TOPIC_LOCK_OPEN_COMMAND_PREFIX,
+            TOPIC_LOCK_OPEN_COMMAND_SUFFIX,
+            stationId,
+            payload
+        );
+
+        return new SuccessResponse(null, "Unlock command sent to MQTT broker", null);
+    } catch (error) {
+        return new ErrorResponse(500, "Failed to unlock pocket", error);
+    }
+};
+
+// ADMIN ONLY
 const createPocket = async (pocketData, userId) => {
     try {
         const isAdmin = await UserModel.findOne({ _id: userId, role: "admin" });
@@ -36,17 +69,13 @@ const createPocket = async (pocketData, userId) => {
             bikeId: null,
         });
 
-        return new SuccessResponse(
-            newPocket,
-            "Pocket created successfully",
-            null
-        );
+        return new SuccessResponse(newPocket, "Pocket created successfully", null);
     } catch (err) {
         return new ErrorResponse(500, "Failed to create pocket", err);
     }
 };
 
-//USER ONLY
+// USER ONLY
 const getPocketByQRCode = async (slotCode) => {
     try {
         const pocket = await StationPocketModel.findOne({ slotCode });
@@ -74,37 +103,30 @@ const getPocketByQRCode = async (slotCode) => {
 
 const onRFIDDetected = async (slotCode, rfidTag) => {
     try {
-        // 1. Cebi bul
         const pocket = await StationPocketModel.findOne({ slotCode });
         if (!pocket) {
             return new ErrorResponse(404, "Pocket not found");
         }
 
-        // 2. Bisikleti RFID ile bul
         const bike = await BikeModel.findOne({ rfidTag });
         if (!bike) {
             return new ErrorResponse(404, "Bike not found for given RFID");
         }
 
-        // 3. Aktif kiralama var mı?
         const rental = await BikeRentalModel.findOne({
             bikeId: bike._id,
             isReturned: false,
         });
 
         if (!rental) {
-            return new ErrorResponse(
-                400,
-                "No active rental found for this bike"
-            );
+            return new ErrorResponse(400, "No active rental found for this bike");
         }
 
-        // 4. Kiralama güncelle → iade et
         const endTime = new Date();
         const durationMinutes = Math.ceil(
             (endTime - rental.startTime) / (1000 * 60)
         );
-        const fee = durationMinutes * 0.5; // örnek: 0.5 ₺/dk
+        const fee = durationMinutes * 0.5;
 
         rental.endTime = endTime;
         rental.duration = durationMinutes;
@@ -113,12 +135,10 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
         rental.isReturned = true;
         await rental.save();
 
-        // 5. Cebe bisikleti ata
         pocket.bikeId = bike._id;
         pocket.isOccupied = true;
         await pocket.save();
 
-        // 6. Bisiklet müsait hale gelsin
         bike.isAvailable = true;
         await bike.save();
 
@@ -187,4 +207,5 @@ export default {
     onRFIDDetected,
     clearPocket,
     getPocketStatus,
+    unlockPocket,
 };

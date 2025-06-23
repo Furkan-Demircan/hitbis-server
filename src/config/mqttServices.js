@@ -5,22 +5,15 @@ import stationPocketService from "../services/stationPocketService.js"; // Stati
 // .env dosyasındaki ortam değişkenlerini yükler
 dotenv.config();
 
-// ===========================================================================
-// !!! BURADAKİ DEĞERLERİ .ENV DOSYANIZDAN GELEN BİLGİLERLE KONTROL EDİN !!!
-// (Bu değerler olmadan MQTT bağlantısı kurulamaz ve kod çalışmaz)
-// ===========================================================================
+// --- MQTT BROKER BİLGİLERİ (Ortam Değişkenlerinden Alınır) ---
+// Bu değerlerin .env dosyanızda doğru şekilde tanımlandığından emin olun!
+const MQTT_BROKER_HOST = process.env.MQTT_BROKER_HOST;
+const MQTT_BROKER_PORT = parseInt(process.env.MQTT_BROKER_PORT, 10); // Sayısal değere dönüştür
+const MQTT_USERNAME = process.env.MQTT_BROKER_USERNAME;
+const MQTT_PASSWORD = process.env.MQTT_BROKER_PASSWORD;
 
-// MQTT Broker Bağlantı Bilgileri (Bu değerler .env dosyasında SET EDİLMELİDİR!)
-const MQTT_BROKER_HOST = process.env.MQTT_BROKER_HOST; // Direk .env'den okusun
-const MQTT_BROKER_PORT = parseInt(process.env.MQTT_BROKER_PORT); // Direk .env'den okusun
-const MQTT_USERNAME = process.env.MQTT_BROKER_USERNAME; // Direk .env'den okusun
-const MQTT_PASSWORD = process.env.MQTT_BROKER_PASSWORD; // Direk .env'den okusun
-// ===========================================================================
-
-// ===========================================================================
-// !!! MQTT TOPIC YAPILARI - BU DEĞERLERİ ESP32 İLE KARARLAŞTIRDIĞINIZ GİBİ DÜZENLEYİN !!!
-// (Bu topic'ler ESP32'deki topic'lerle tam olarak EŞLEŞMELİDİR)
-// ===========================================================================
+// --- MQTT TOPIC YAPILARI ---
+// Bu topic'ler ESP32'deki topic'lerle tam olarak EŞLEŞMELİDİR!
 
 // Backend'den ESP32'ye komut göndermek için Topic'ler
 // Örnek: "hitbis/station/ISTASYON_ID/lock/open/command"
@@ -39,101 +32,107 @@ export const TOPIC_RFID_DETECTED_EVENT = "hitbis/station/rfid/detected";
 export const TOPIC_LOCK_STATUS_UPDATE_PREFIX = "hitbis/station/";
 export const TOPIC_LOCK_STATUS_UPDATE_SUFFIX = "/status/lock";
 
-// ===========================================================================
-
-// MQTT istemcisini oluşturma seçenekleri
-const options = {
+// --- MQTT İstemci Yapılandırması ---
+const clientOptions = {
     port: MQTT_BROKER_PORT,
     username: MQTT_USERNAME,
     password: MQTT_PASSWORD,
-    // clientId: 'backend_server_' + Math.random().toString(16).substr(2, 8),
-    // clean: true,
-    // keepalive: 60,
+    // clientId: `backend_server_${Math.random().toString(16).substr(2, 8)}`, // Benzersiz Client ID
+    // clean: true, // Clean session'ı etkinleştir
+    // keepalive: 60, // Keepalive süresi saniye cinsinden
+    // rejectUnauthorized: false, // Sertifika doğrulamayı kapatır (geliştirme ortamı için tehlikelidir)
+    // protocol: 'mqtts', // Broker'ınız SSL/TLS kullanıyorsa 'mqtts' kullanın
 };
 
-const client = mqtt.connect(MQTT_BROKER_HOST, options);
+// MQTT istemcisini başlat
+const client = mqtt.connect(MQTT_BROKER_HOST, clientOptions);
+
+// --- MQTT Olay Dinleyicileri ---
 
 // Bağlantı kurulduğunda
 client.on("connect", () => {
-    console.log("Connected to MQTT Broker!");
-    // Backend'in dinlemesi gereken topic'lere abone ol
-    // ESP32'den gelen RFID okuma ve kilit durumu güncellemelerini dinliyoruz
+    console.log("[MQTT] Backend MQTT Broker'a başarıyla bağlandı.");
+
+    // RFID algılama olaylarını dinlemek için abone ol
     client.subscribe(TOPIC_RFID_DETECTED_EVENT, (err) => {
-        // TOPIC_RFID_DETECTED_EVENT olarak güncellendi
-        if (err)
-            console.error("Failed to subscribe to RFID detected topic:", err);
-        else console.log(`Subscribed to ${TOPIC_RFID_DETECTED_EVENT}`);
-    });
-    // Tüm istasyonların kilit durumu güncellemelerini dinle: hitbis/station/+/status/lock
-    client.subscribe(
-        `${TOPIC_LOCK_STATUS_UPDATE_PREFIX}+${TOPIC_LOCK_STATUS_UPDATE_SUFFIX}`,
-        (err) => {
-            if (err)
-                console.error(
-                    "Failed to subscribe to lock status update topic prefix:",
-                    err
-                );
-            else
-                console.log(
-                    `Subscribed to ${TOPIC_LOCK_STATUS_UPDATE_PREFIX}+${TOPIC_LOCK_STATUS_UPDATE_SUFFIX}`
-                );
+        if (err) {
+            console.error(`[MQTT ERROR] ${TOPIC_RFID_DETECTED_EVENT} topic'ine abone olunurken hata:`, err);
+        } else {
+            console.log(`[MQTT] ${TOPIC_RFID_DETECTED_EVENT} topic'ine abone olundu.`);
         }
-    );
+    });
+
+    // Tüm istasyonların kilit durumu güncellemelerini dinlemek için abone ol
+    // Topic formatı: hitbis/station/+/status/lock
+    const lockStatusTopicWildcard = `${TOPIC_LOCK_STATUS_UPDATE_PREFIX}+${TOPIC_LOCK_STATUS_UPDATE_SUFFIX}`;
+    client.subscribe(lockStatusTopicWildcard, (err) => {
+        if (err) {
+            console.error(`[MQTT ERROR] ${lockStatusTopicWildcard} topic'ine abone olunurken hata:`, err);
+        } else {
+            console.log(`[MQTT] ${lockStatusTopicWildcard} topic'ine abone olundu.`);
+        }
+    });
 });
 
 // Hata durumunda
 client.on("error", (err) => {
-    console.error("MQTT Connection error: ", err);
+    console.error(`[MQTT ERROR] MQTT bağlantı hatası: ${err.message}`);
 });
 
 // Gelen MQTT mesajlarını işleme
 client.on("message", async (topic, message) => {
-    console.log(`Received message from topic: ${topic}: ${message.toString()}`);
+    console.log(`[MQTT IN] Mesaj alındı. Topic: ${topic}, Payload: ${message.toString()}`);
 
     try {
         const parsedMessage = JSON.parse(message.toString());
 
+        // RFID Algılama Olayları
         if (topic === TOPIC_RFID_DETECTED_EVENT) {
-            // TOPIC_RFID_DETECTED_EVENT olarak güncellendi
-            const { slotCode, rfidTag } = parsedMessage; // RFID mesajı içinde stationId de bekleyelim
-            if (slotCode && rfidTag) {
-                console.log(
-                    `MQTT: Processing RFID detection for slot ${slotCode} with RFID ${rfidTag} at station`
-                );
+            const { slotCode, rfidTag, stationId } = parsedMessage; // ESP32 kodunda stationId de ekledik
+            if (slotCode && rfidTag && stationId) {
+                console.log(`[EVENT] RFID algılandı. İstasyon: ${stationId}, Slot: ${slotCode}, RFID: ${rfidTag}`);
                 // RFID algılandığında StationPocketService.onRFIDDetected'i çağır
-                // Not: onRFIDDetected sadece slotCode ve rfidTag alıyor, gerekirse imzasını güncelleyebiliriz.
                 const result = await stationPocketService.onRFIDDetected(
                     slotCode,
                     rfidTag
                 );
-                console.log("RFID Detection Result:", result);
+                // Servis cevabını logla
+                if (result.success) {
+                    console.log("[SERVICE RESPONSE] RFID algılama ve iade işlemi başarılı:", result.data);
+                } else {
+                    console.error("[SERVICE RESPONSE ERROR] RFID algılama ve iade işlemi başarısız:", result.error);
+                }
             } else {
                 console.warn(
-                    "MQTT: RFID detected message missing slotCode, rfidTag or stationId:",
+                    "[WARN] RFID algılama mesajı eksik bilgi içeriyor (slotCode, rfidTag veya stationId):",
                     parsedMessage
                 );
             }
-        } else if (
+        }
+        // Kilit Durumu Güncellemeleri (Servo Motor Durumu)
+        else if (
             topic.startsWith(TOPIC_LOCK_STATUS_UPDATE_PREFIX) &&
             topic.endsWith(TOPIC_LOCK_STATUS_UPDATE_SUFFIX)
         ) {
-            // TOPIC_LOCK_STATUS_UPDATE_PREFIX/SUFFIX olarak güncellendi
-            const parts = topic.split("/");
-            const stationId = parts[2]; // Örn: 'hitbis' 'station' 'ISTASYON_ID' 'status' 'lock'
+            // Topic'ten stationId'yi çıkar
+            const parts = topic.split("/"); // Örn: ['hitbis', 'station', '1901', 'status', 'lock']
+            const stationIdIndex = 2; // Bu, istasyon ID'sinin bulunduğu indeks
+            const stationId = parts[stationIdIndex];
 
-            const { status, success, message: statusMessage } = parsedMessage;
+            const { status, success, slotCode, message: statusMessage } = parsedMessage; // ESP32'den slotCode da bekliyoruz
             console.log(
-                `MQTT: Lock status update for station ${stationId}: Status=${status}, Success=${success}, Message=${statusMessage}`
+                `[SERVO STATUS FROM ESP] İstasyon: ${stationId}, Slot: ${slotCode || 'Bilinmiyor'}, Durum: ${status}, Başarı: ${success}, Mesaj: ${statusMessage || 'Yok'}`
             );
-            // TODO: İlgili kilit durumunu veritabanında güncelleme veya loglama mantığı buraya eklenebilir.
+            // TODO: İlgili kilit durumunu veritabanında güncelleme veya daha ileri işleme mantığı buraya eklenebilir.
+            // Örneğin:
+            // await StationPocketModel.findOneAndUpdate({ stationId, slotCode }, { lockStatus: status });
         }
     } catch (e) {
-        console.error("MQTT: Failed to parse message or process it:", e);
+        console.error(`[ERROR] Gelen mesaj ayrıştırılırken veya işlenirken hata oluştu: ${e.message}`, e);
     }
 });
 
 // MQTT mesajı yayınlama fonksiyonu
-// Artık topic'i prefix, suffix ve dinamik stationId ile oluşturuyoruz
 export const publishMqttMessage = (
     topicPrefix,
     topicSuffix,
@@ -145,16 +144,16 @@ export const publishMqttMessage = (
         client.publish(
             topic,
             JSON.stringify(payload),
-            { qos: 1, retain: false },
+            { qos: 1, retain: false }, // QoS ve retain ayarlarını kontrol edin
             (err) => {
                 if (err) {
                     console.error(
-                        `MQTT: Failed to publish message to topic ${topic}:`,
+                        `[MQTT OUT ERROR] Mesaj ${topic} topic'ine yayınlanırken hata:`,
                         err
                     );
                 } else {
                     console.log(
-                        `MQTT: Message published to topic ${topic}: ${JSON.stringify(
+                        `[MQTT OUT] Mesaj ${topic} topic'ine başarıyla yayınlandı. Payload: ${JSON.stringify(
                             payload
                         )}`
                     );
@@ -162,9 +161,9 @@ export const publishMqttMessage = (
             }
         );
     } else {
-        console.warn("MQTT: Client not connected, cannot publish message.");
+        console.warn("[MQTT WARN] MQTT istemcisi bağlı değil, mesaj yayınlanamadı.");
     }
 };
 
-// MQTT istemcisinin kendisini de dışa aktarabiliriz
+// MQTT istemcisinin kendisini de dışa aktarabiliriz (gerekliyse)
 export default client;

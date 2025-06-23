@@ -25,6 +25,12 @@ const unlockPocket = async (slotCode) => {
         } = await import("../services/mqttServices.js");
 
         const stationId = pocket.stationId.toString();
+
+        console.log("📤 MQTT mesajı gönderiliyor:", {
+            topic: `${TOPIC_LOCK_OPEN_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_OPEN_COMMAND_SUFFIX}`,
+            payload,
+        });
+
         publishMqttMessage(
             TOPIC_LOCK_OPEN_COMMAND_PREFIX,
             TOPIC_LOCK_OPEN_COMMAND_SUFFIX,

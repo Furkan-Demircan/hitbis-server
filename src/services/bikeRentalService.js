@@ -2,7 +2,7 @@ import BikeRentalModel from "../models/BikeRentalModel.js";
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import StationPocketModel from "../models/StationPocketModel.js";
 import BikeModel from "../models/BikeModel.js";
-import stationPocketService from "./stationPocketService.js"; // ✅ MQTT ile kilit açmak için
+import stationPocketService from "./stationPocketService.js";
 
 const rentBike = async (slotCode, userId) => {
     try {

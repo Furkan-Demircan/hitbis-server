@@ -7,10 +7,16 @@ import StationModel from "../models/StationModel.js";
 
 const unlockPocket = async (slotCode) => {
     try {
+        console.log("🔓 unlockPocket() çağrıldı → slotCode:", slotCode);
+
         const pocket = await StationPocketModel.findOne({ slotCode });
-        if (!pocket) return new ErrorResponse(404, "Pocket not found");
+        if (!pocket) {
+            console.log("❌ Pocket bulunamadı:", slotCode);
+            return new ErrorResponse(404, "Pocket not found");
+        }
 
         if (!pocket.bikeId || !pocket.isOccupied) {
+            console.log("⚠️ Pocket boş veya bisiklet yok:", slotCode);
             return new ErrorResponse(400, "No bike to unlock in this slot");
         }
 
@@ -19,17 +25,19 @@ const unlockPocket = async (slotCode) => {
             slotCode: slotCode,
         };
 
-        const { publishMqttMessage,
+        const {
+            publishMqttMessage,
             TOPIC_LOCK_OPEN_COMMAND_PREFIX,
             TOPIC_LOCK_OPEN_COMMAND_SUFFIX
         } = await import("../services/mqttServices.js");
 
         const stationId = pocket.stationId.toString();
+        const topic = `${TOPIC_LOCK_OPEN_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_OPEN_COMMAND_SUFFIX}`;
 
-        console.log("📤 MQTT mesajı gönderiliyor:", {
-            topic: `${TOPIC_LOCK_OPEN_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_OPEN_COMMAND_SUFFIX}`,
-            payload,
-        });
+        console.log("📦 mqttServices yüklendi");
+        console.log("📤 MQTT mesajı gönderiliyor:");
+        console.log("    topic:", topic);
+        console.log("    payload:", payload);
 
         publishMqttMessage(
             TOPIC_LOCK_OPEN_COMMAND_PREFIX,
@@ -38,11 +46,15 @@ const unlockPocket = async (slotCode) => {
             payload
         );
 
+        console.log("✅ MQTT mesajı yayınlandı.");
+
         return new SuccessResponse(null, "Unlock command sent to MQTT broker", null);
     } catch (error) {
+        console.error("💥 unlockPocket() sırasında hata:", error);
         return new ErrorResponse(500, "Failed to unlock pocket", error);
     }
 };
+
 
 // ADMIN ONLY
 const createPocket = async (pocketData, userId) => {

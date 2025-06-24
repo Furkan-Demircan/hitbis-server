@@ -19,9 +19,10 @@ const unlockPocket = async (slotCode) => {
             slotCode: slotCode,
         };
 
-        const { publishMqttMessage,
+        const {
+            publishMqttMessage,
             TOPIC_LOCK_OPEN_COMMAND_PREFIX,
-            TOPIC_LOCK_OPEN_COMMAND_SUFFIX
+            TOPIC_LOCK_OPEN_COMMAND_SUFFIX,
         } = await import("../services/mqttServices.js");
 
         const stationId = pocket.stationId.toString();
@@ -32,7 +33,11 @@ const unlockPocket = async (slotCode) => {
             payload
         );
 
-        return new SuccessResponse(null, "Unlock command sent to MQTT broker", null);
+        return new SuccessResponse(
+            null,
+            "Unlock command sent to MQTT broker",
+            null
+        );
     } catch (error) {
         return new ErrorResponse(500, "Failed to unlock pocket", error);
     }
@@ -69,7 +74,11 @@ const createPocket = async (pocketData, userId) => {
             bikeId: null,
         });
 
-        return new SuccessResponse(newPocket, "Pocket created successfully", null);
+        return new SuccessResponse(
+            newPocket,
+            "Pocket created successfully",
+            null
+        );
     } catch (err) {
         return new ErrorResponse(500, "Failed to create pocket", err);
     }
@@ -103,17 +112,13 @@ const getPocketByQRCode = async (slotCode) => {
 
 const onRFIDDetected = async (slotCode, rfidTag) => {
     try {
-        console.log("🔔 onRFIDDetected() çağrıldı:", slotCode, rfidTag);
-
         const pocket = await StationPocketModel.findOne({ slotCode });
         if (!pocket) {
-            console.log("❌ Pocket bulunamadı:", slotCode);
             return new ErrorResponse(404, "Pocket not found");
         }
 
         const bike = await BikeModel.findOne({ rfidTag });
         if (!bike) {
-            console.log("❌ Bike bulunamadı, rfid:", rfidTag);
             return new ErrorResponse(404, "Bike not found for given RFID");
         }
 
@@ -123,12 +128,16 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
         });
 
         if (!rental) {
-            console.log("❌ Aktif kiralama bulunamadı, bikeId:", bike._id);
-            return new ErrorResponse(400, "No active rental found for this bike");
+            return new ErrorResponse(
+                400,
+                "No active rental found for this bike"
+            );
         }
 
         const endTime = new Date();
-        const durationMinutes = Math.ceil((endTime - rental.startTime) / (1000 * 60));
+        const durationMinutes = Math.ceil(
+            (endTime - rental.startTime) / (1000 * 60)
+        );
         const fee = durationMinutes * 0.5;
 
         rental.endTime = endTime;
@@ -137,16 +146,13 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
         rental.stationId_end = pocket.stationId;
         rental.isReturned = true;
         await rental.save();
-        console.log("✅ Kiralama başarıyla iade edildi:", rental._id);
 
         pocket.bikeId = bike._id;
         pocket.isOccupied = true;
         await pocket.save();
-        console.log("✅ Pocket güncellendi:", pocket.slotCode);
 
         bike.isAvailable = true;
         await bike.save();
-        console.log("✅ Bike güncellendi (artık müsait):", bike._id);
 
         return new SuccessResponse(
             {
@@ -160,11 +166,9 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
             null
         );
     } catch (error) {
-        console.error("💥 onRFIDDetected sırasında hata oluştu:", error);
         return new ErrorResponse(500, "RFID return failed", error);
     }
 };
-
 
 const clearPocket = async (pocketId) => {
     try {

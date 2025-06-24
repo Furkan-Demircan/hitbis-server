@@ -16,7 +16,9 @@ const unlockPocket = async (slotCode) => {
         }
 
         if (!pocket.bikeId || !pocket.isOccupied) {
-            console.warn(`[WARN] Pocket boş veya bisiklet yok. Slot Kodu: ${slotCode}`);
+            console.warn(
+                `[WARN] Pocket boş veya bisiklet yok. Slot Kodu: ${slotCode}`
+            );
             return new ErrorResponse(400, "No bike to unlock in this slot");
         }
 
@@ -35,7 +37,10 @@ const unlockPocket = async (slotCode) => {
         // Topic yapısı: hitbis/station/[stationId]/lock/open/command
         const topic = `${TOPIC_LOCK_OPEN_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_OPEN_COMMAND_SUFFIX}`;
 
-        console.log(`[MQTT OUT] Kilit açma komutu gönderiliyor. Topic: ${topic}, Payload:`, payload);
+        console.log(
+            `[MQTT OUT] Kilit açma komutu gönderiliyor. Topic: ${topic}, Payload:`,
+            payload
+        );
 
         publishMqttMessage(
             TOPIC_LOCK_OPEN_COMMAND_PREFIX,
@@ -44,19 +49,16 @@ const unlockPocket = async (slotCode) => {
             payload
         );
 
-<<<<<<< HEAD
         return new SuccessResponse(
             null,
             "Unlock command sent to MQTT broker",
             null
         );
-=======
-        console.log("[MQTT OUT] Kilit açma komutu MQTT broker'a başarıyla yayınlandı.");
-
-        return new SuccessResponse(null, "Unlock command sent to MQTT broker", null);
->>>>>>> 73e9a6e0c4f98e500ad9774424ac81e1727df8ab
     } catch (error) {
-        console.error(`[ERROR] unlockPocket sırasında hata oluştu: ${error.message}`, error);
+        console.error(
+            `[ERROR] unlockPocket sırasında hata oluştu: ${error.message}`,
+            error
+        );
         return new ErrorResponse(500, "Failed to unlock pocket", error);
     }
 };
@@ -66,13 +68,17 @@ const createPocket = async (pocketData, userId) => {
     try {
         const isAdmin = await UserModel.findOne({ _id: userId, role: "admin" });
         if (!isAdmin) {
-            console.warn(`[AUTH] Yetkisiz kullanıcı (${userId}) cep oluşturmaya çalıştı.`);
+            console.warn(
+                `[AUTH] Yetkisiz kullanıcı (${userId}) cep oluşturmaya çalıştı.`
+            );
             return new ErrorResponse(403, "Only admins can create pockets");
         }
 
         const station = await StationModel.findById(pocketData.stationId);
         if (!station) {
-            console.error(`[ERROR] İstasyon bulunamadı: ${pocketData.stationId}`);
+            console.error(
+                `[ERROR] İstasyon bulunamadı: ${pocketData.stationId}`
+            );
             return new ErrorResponse(404, "Station not found");
         }
 
@@ -81,7 +87,9 @@ const createPocket = async (pocketData, userId) => {
         });
 
         if (existing) {
-            console.warn(`[WARN] Bu QR koduna sahip slot zaten mevcut: ${pocketData.slotCode}`);
+            console.warn(
+                `[WARN] Bu QR koduna sahip slot zaten mevcut: ${pocketData.slotCode}`
+            );
             return new ErrorResponse(
                 400,
                 "Slot with this QR code already exists"
@@ -110,9 +118,15 @@ const getPocketByQRCode = async (slotCode) => {
     try {
         const pocket = await StationPocketModel.findOne({ slotCode });
 
-        if (!pocket) { // Pocket bulunamazsa ilk kontrol bu olmalı
-            console.error(`[ERROR] Verilen QR koduyla cep bulunamadı: ${slotCode}`);
-            return new ErrorResponse(404, "Pocket not found with given QR code");
+        if (!pocket) {
+            // Pocket bulunamazsa ilk kontrol bu olmalı
+            console.error(
+                `[ERROR] Verilen QR koduyla cep bulunamadı: ${slotCode}`
+            );
+            return new ErrorResponse(
+                404,
+                "Pocket not found with given QR code"
+            );
         }
 
         if (!pocket.isOccupied || !pocket.bikeId) {
@@ -126,14 +140,19 @@ const getPocketByQRCode = async (slotCode) => {
             null
         );
     } catch (error) {
-        console.error(`[ERROR] getPocketByQRCode sırasında hata oluştu: ${error.message}`, error);
+        console.error(
+            `[ERROR] getPocketByQRCode sırasında hata oluştu: ${error.message}`,
+            error
+        );
         return new ErrorResponse(500, "Failed to retrieve pocket", error);
     }
 };
 
 const onRFIDDetected = async (slotCode, rfidTag) => {
     try {
-        console.log(`[SERVICE] onRFIDDetected çağrıldı. Slot Kodu: ${slotCode}, RFID Etiketi: ${rfidTag}`);
+        console.log(
+            `[SERVICE] onRFIDDetected çağrıldı. Slot Kodu: ${slotCode}, RFID Etiketi: ${rfidTag}`
+        );
 
         const pocket = await StationPocketModel.findOne({ slotCode });
         if (!pocket) {
@@ -143,7 +162,9 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
 
         const bike = await BikeModel.findOne({ rfidTag });
         if (!bike) {
-            console.error(`[ERROR] Verilen RFID (${rfidTag}) için bisiklet bulunamadı.`);
+            console.error(
+                `[ERROR] Verilen RFID (${rfidTag}) için bisiklet bulunamadı.`
+            );
             return new ErrorResponse(404, "Bike not found for given RFID");
         }
 
@@ -175,11 +196,15 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
         pocket.bikeId = bike._id;
         pocket.isOccupied = true;
         await pocket.save();
-        console.log(`[DB] Cep güncellendi (bisiklet yerleştirildi). Slot Kodu: ${pocket.slotCode}`);
+        console.log(
+            `[DB] Cep güncellendi (bisiklet yerleştirildi). Slot Kodu: ${pocket.slotCode}`
+        );
 
         bike.isAvailable = true;
         await bike.save();
-        console.log(`[DB] Bisiklet güncellendi (artık müsait). Bisiklet ID: ${bike._id}`);
+        console.log(
+            `[DB] Bisiklet güncellendi (artık müsait). Bisiklet ID: ${bike._id}`
+        );
 
         // Servo motoru kapatma komutunu gönder
         const payload = {
@@ -190,14 +215,17 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
         const {
             publishMqttMessage,
             TOPIC_LOCK_CLOSE_COMMAND_PREFIX,
-            TOPIC_LOCK_CLOSE_COMMAND_SUFFIX
+            TOPIC_LOCK_CLOSE_COMMAND_SUFFIX,
         } = await import("../services/mqttServices.js"); // Bu import'un her zaman doğru yolu gösterdiğinden emin olun
 
         const stationId = pocket.stationId.toString();
         // Topic yapısı: hitbis/station/[stationId]/lock/close/command
         const topic = `${TOPIC_LOCK_CLOSE_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_CLOSE_COMMAND_SUFFIX}`;
 
-        console.log(`[MQTT OUT] Kilit kapatma komutu gönderiliyor. Topic: ${topic}, Payload:`, payload);
+        console.log(
+            `[MQTT OUT] Kilit kapatma komutu gönderiliyor. Topic: ${topic}, Payload:`,
+            payload
+        );
 
         publishMqttMessage(
             TOPIC_LOCK_CLOSE_COMMAND_PREFIX,
@@ -205,8 +233,9 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
             stationId,
             payload
         );
-        console.log("[MQTT OUT] Kilit kapatma komutu MQTT broker'a başarıyla yayınlandı.");
-
+        console.log(
+            "[MQTT OUT] Kilit kapatma komutu MQTT broker'a başarıyla yayınlandı."
+        );
 
         return new SuccessResponse(
             {
@@ -229,7 +258,9 @@ const clearPocket = async (pocketId) => {
         const pocket = await StationPocketModel.findById(pocketId);
 
         if (!pocket) {
-            console.error(`[ERROR] Clear işlemi için cep bulunamadı: ${pocketId}`);
+            console.error(
+                `[ERROR] Clear işlemi için cep bulunamadı: ${pocketId}`
+            );
             return new ErrorResponse(404, "Pocket not found");
         }
 
@@ -245,7 +276,10 @@ const clearPocket = async (pocketId) => {
 
         return new SuccessResponse(pocket, "Pocket cleared successfully", null);
     } catch (error) {
-        console.error(`[ERROR] clearPocket sırasında hata oluştu: ${error.message}`, error);
+        console.error(
+            `[ERROR] clearPocket sırasında hata oluştu: ${error.message}`,
+            error
+        );
         return new ErrorResponse(500, "Failed to clear pocket", error);
     }
 };
@@ -257,17 +291,24 @@ const getPocketStatus = async (stationId) => {
         );
 
         if (!pockets || pockets.length === 0) {
-            console.warn(`[WARN] Bu istasyon (${stationId}) için cep bulunamadı.`);
+            console.warn(
+                `[WARN] Bu istasyon (${stationId}) için cep bulunamadı.`
+            );
             return new ErrorResponse(404, "No pockets found for this station");
         }
-        console.log(`[DB] İstasyon (${stationId}) için cep durumu alındı. Toplam ${pockets.length} cep.`);
+        console.log(
+            `[DB] İstasyon (${stationId}) için cep durumu alındı. Toplam ${pockets.length} cep.`
+        );
         return new SuccessResponse(
             pockets,
             "Pocket status retrieved successfully",
             pockets.length
         );
     } catch (err) {
-        console.error(`[ERROR] getPocketStatus sırasında hata oluştu: ${err.message}`, err);
+        console.error(
+            `[ERROR] getPocketStatus sırasında hata oluştu: ${err.message}`,
+            err
+        );
         return new ErrorResponse(500, "Failed to retrieve pocket status", err);
     }
 };

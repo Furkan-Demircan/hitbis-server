@@ -1,7 +1,8 @@
 import redis from "redis";
+import dotenv from "dotenv";
+dotenv.config();
 
-// Redis URL'ini çevresel değişkenden al
-const redisUrl = process.env.REDIS_PUBLIC_URL;
+const redisUrl = process.env.REDIS_URL;
 
 const redisClient = redis.createClient({
     url: redisUrl,
@@ -9,7 +10,7 @@ const redisClient = redis.createClient({
 
 async function testRedisConnection() {
     try {
-        // Redis'e bağlanmaya çalışın
+        // Redis'e bağlan
         await redisClient.connect();
         console.log("Redis bağlantısı başarılı.");
 

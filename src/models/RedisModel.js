@@ -1,9 +1,13 @@
 import redis from "redis";
+import dotenv from "dotenv";
+dotenv.config();
 
 class RedisModel {
     constructor() {
         // Redis bağlantı URL'sini çevresel değişkenden al
-        const redisUrl = process.env.REDIS_PUBLIC_URL;
+        const redisUrl = process.env.REDIS_URL;
+
+        console.log("Redis URL:", redisUrl); // URL'yi konsola yazdır
 
         // Redis client'ını URL ile başlat
         this.client = redis.createClient({

@@ -16,7 +16,10 @@ const __dirname = dirname(__filename);
 dotenv.config();
 const app = express();
 
+// HTTP server'ı oluştur
 const server = http.createServer(app);
+
+// SocketService'i başlat
 const socketService = new SocketService(server);
 
 app.use(
@@ -26,9 +29,12 @@ app.use(
     })
 );
 app.use(json());
+
 connectToDatabase();
+
 const port = process.env.APP_PORT || 3000;
 
+// API route'ları
 app.use("/api/user/", routes.userRoutes);
 app.use("/api/auth/", routes.authRoutes);
 app.use("/api/group/", routes.groupRoutes);
@@ -41,10 +47,14 @@ app.use("/api/station/", routes.stationRoutes);
 app.use("/api/station-pocket/", routes.stationPocketRoutes);
 app.use("/api/bike/", routes.bikeRoutes);
 app.use("/api/bike-rental/", routes.bikeRentalRoutes);
+
+// Dosya yükleme alanı
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// SocketService'i app'e ekle
 app.set("socketService", socketService);
 
+// Sunucuyu başlat
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
 });

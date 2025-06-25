@@ -1,5 +1,3 @@
-// stationpocketservice.js
-
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import StationPocketModel from "../models/StationPocketModel.js";
 import UserModel from "../models/UserModel.js";
@@ -29,16 +27,20 @@ const unlockPocket = async (slotCode) => {
 
         const {
             publishMqttMessage,
-            TOPIC_COMMAND_BASE // Yeni genel komut topici
+            TOPIC_LOCK_OPEN_COMMAND_PREFIX,
+            TOPIC_LOCK_OPEN_COMMAND_SUFFIX
         } = await import("../services/mqttServices.js");
 
-        // Topic'i ESP32'nin abone olduğu formata göre oluştur
-        const topic = `${TOPIC_COMMAND_BASE}${slotCode}`; // Doğrudan slotCode kullanıyoruz
+        const stationId = pocket.stationId.toString();
+        // Topic yapısı: hitbis/station/[stationId]/lock/open/command
+        const topic = `${TOPIC_LOCK_OPEN_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_OPEN_COMMAND_SUFFIX}`;
 
         console.log(`[MQTT OUT] Kilit açma komutu gönderiliyor. Topic: ${topic}, Payload:`, payload);
 
         publishMqttMessage(
-            topic, // Güncellenmiş publishMqttMessage artık direkt topic'i alıyor
+            TOPIC_LOCK_OPEN_COMMAND_PREFIX,
+            TOPIC_LOCK_OPEN_COMMAND_SUFFIX,
+            stationId,
             payload
         );
 
@@ -97,14 +99,14 @@ const getPocketByQRCode = async (slotCode) => {
     try {
         const pocket = await StationPocketModel.findOne({ slotCode });
 
-        if (!pocket) {
+        if (!pocket) { // Pocket bulunamazsa ilk kontrol bu olmalı
             console.error(`[ERROR] Verilen QR koduyla cep bulunamadı: ${slotCode}`);
             return new ErrorResponse(404, "Pocket not found with given QR code");
         }
 
         if (!pocket.isOccupied || !pocket.bikeId) {
             console.warn(`[WARN] Bu slot şu anda boş: ${slotCode}`);
-            return new ErrorResponse(400, "This slot is currently empty");
+            return new ErrorResponse(400, "This slot is currently empty"); // 404 yerine 400 daha uygun olabilir
         }
         console.log(`[DB] Cep başarıyla alındı: ${pocket.slotCode}`);
         return new SuccessResponse(
@@ -146,7 +148,7 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
 
         const endTime = new Date();
         const durationMinutes = Math.ceil((endTime - rental.startTime) / (1000 * 60));
-        const fee = durationMinutes * 0.5;
+        const fee = durationMinutes * 0.5; // Fiyatlandırma mantığınız
 
         rental.endTime = endTime;
         rental.duration = durationMinutes;
@@ -167,22 +169,26 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
 
         // Servo motoru kapatma komutunu gönder
         const payload = {
-            command: "close",
+            command: "close", // Kilidi kapatma komutu
             slotCode: slotCode,
         };
 
         const {
             publishMqttMessage,
-            TOPIC_COMMAND_BASE // Yeni genel komut topici
-        } = await import("../services/mqttServices.js");
+            TOPIC_LOCK_CLOSE_COMMAND_PREFIX,
+            TOPIC_LOCK_CLOSE_COMMAND_SUFFIX
+        } = await import("../services/mqttServices.js"); // Bu import'un her zaman doğru yolu gösterdiğinden emin olun
 
-        // Topic'i ESP32'nin abone olduğu formata göre oluştur
-        const topic = `${TOPIC_COMMAND_BASE}${slotCode}`; // Doğrudan slotCode kullanıyoruz
+        const stationId = pocket.stationId.toString();
+        // Topic yapısı: hitbis/station/[stationId]/lock/close/command
+        const topic = `${TOPIC_LOCK_CLOSE_COMMAND_PREFIX}${stationId}${TOPIC_LOCK_CLOSE_COMMAND_SUFFIX}`;
 
         console.log(`[MQTT OUT] Kilit kapatma komutu gönderiliyor. Topic: ${topic}, Payload:`, payload);
 
         publishMqttMessage(
-            topic, // Güncellenmiş publishMqttMessage artık direkt topic'i alıyor
+            TOPIC_LOCK_CLOSE_COMMAND_PREFIX,
+            TOPIC_LOCK_CLOSE_COMMAND_SUFFIX,
+            stationId,
             payload
         );
         console.log("[MQTT OUT] Kilit kapatma komutu MQTT broker'a başarıyla yayınlandı.");

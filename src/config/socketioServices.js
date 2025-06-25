@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import SocketController from "../controllers/SocketController.js";
+import socketAuthMiddleware from "../middlewares/socketIOAuthMiddleware.js";
 
 class SocketService {
     constructor(server) {
@@ -9,7 +10,7 @@ class SocketService {
                 methods: ["GET", "POST"],
             },
         });
-
+        socketAuthMiddleware(this.io);
         // SocketController'ı başlat
         this.socketController = new SocketController(this.io);
     }

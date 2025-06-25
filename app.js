@@ -6,13 +6,18 @@ import routes from "./src/routes/index.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import './src/config/mqttServices.js';
+import "./src/config/mqttServices.js";
+import SocketService from "./src/config/socketioServices.js";
+import http from "http";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config();
 const app = express();
+
+const server = http.createServer(app);
+const socketService = new SocketService(server);
 
 app.use(
     cors({
@@ -37,6 +42,8 @@ app.use("/api/station-pocket/", routes.stationPocketRoutes);
 app.use("/api/bike/", routes.bikeRoutes);
 app.use("/api/bike-rental/", routes.bikeRentalRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.set("socketService", socketService);
 
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);

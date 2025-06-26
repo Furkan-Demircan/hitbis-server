@@ -74,13 +74,11 @@ client.on("message", async (topic, message) => {
             if (slotCode && rfidTag) {
                 console.log(`[EVENT] RFID algılandı. Slot: ${slotCode}, RFID: ${rfidTag}`);
                 
-                // *** YENİ EKLENEN KISIM: KISA BİR GECİKME EKLEYELİM ***
-                // Bu, kiralama kaydının veritabanına tam olarak yazılmasına zaman tanıyabilir.
-                await new Promise(resolve => setTimeout(resolve, 1000)); // 1 saniye gecikme
-                console.log("[DEBUG] 1 saniye gecikme sonrası RFID işleme devam ediyor...");
-                // ******************************************************
+                // *** Gecikmeyi 3 saniyeye çıkarıyoruz ***
+                await new Promise(resolve => setTimeout(resolve, 3000)); // 3 saniye gecikme
+                console.log("[DEBUG] 3 saniye gecikme sonrası RFID işleme devam ediyor...");
+                // ***************************************
 
-                // RFID algılandığında StationPocketService.onRFIDDetected'i çağır
                 const result = await stationPocketService.onRFIDDetected(
                     slotCode,
                     rfidTag

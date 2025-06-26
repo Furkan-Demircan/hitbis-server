@@ -17,11 +17,13 @@ const MQTT_PASSWORD = process.env.MQTT_BROKER_PASSWORD;
 export const TOPIC_COMMAND_BASE = "hitbis/istasyon/kontrol/";
 
 // ESP32'den Backend'e durum güncellemesi veya olay bildirmek için Topic'ler
-// Örnek: "hitbis/station/rfid/detected" { "slotCode": "...", "rfidTag": "..." }
-export const TOPIC_RFID_DETECTED_EVENT = "hitbis/station/rfid/detected"; // Bu topic'i ESP32 kodunda publishStatus içinde kullanacağız
-
-// Örnek: "hitbis/istasyon/durum/190207" { "status": "...", "slotCode": "..." }
+// ESP32'den gelen tüm durum güncellemeleri (RFID algılama da dahil) bu topice gelir: "hitbis/istasyon/durum/SLOT_CODE"
 export const TOPIC_STATUS_UPDATE_BASE = "hitbis/istasyon/durum/";
+
+// NOT: TOPIC_RFID_DETECTED_EVENT artık doğrudan kullanılmıyor,
+// çünkü ESP32 tüm durumları TOPIC_STATUS_UPDATE_BASE altında gönderiyor.
+// Bu değişkeni kaldırabilir veya ileride RFID için özel bir topic kullanmak isterseniz tutabilirsiniz.
+// Şimdilik abonelik ve mesaj işleme mantığında TOPIC_STATUS_UPDATE_BASE'i kullanacağız.
 
 
 const clientOptions = {
@@ -29,9 +31,8 @@ const clientOptions = {
     username: MQTT_USERNAME,
     password: MQTT_PASSWORD,
     // Diğer seçenekleriniz...
-    protocol: 'mqtts', // Önceki konuşmalarımızda 8883 portunu kullandığınızı belirttiniz, bu da SSL/TLS anlamına gelir.
-    rejectUnauthorized: false, // Güvenilir bir sertifika kullanmıyorsanız geliştirme ortamında bu gerekli olabilir.
-                               // Üretim ortamında kesinlikle true olmalıdır.
+    protocol: 'mqtts',
+    rejectUnauthorized: false,
 };
 
 const client = mqtt.connect(MQTT_BROKER_HOST, clientOptions);
@@ -39,14 +40,10 @@ const client = mqtt.connect(MQTT_BROKER_HOST, clientOptions);
 client.on("connect", () => {
     console.log("[MQTT] Backend MQTT Broker'a başarıyla bağlandı.");
 
-    // RFID algılama olaylarını dinlemek için abone ol
-    client.subscribe(TOPIC_RFID_DETECTED_EVENT, (err) => {
-        if (err) {
-            console.error(`[MQTT ERROR] ${TOPIC_RFID_DETECTED_EVENT} topic'ine abone olunurken hata:`, err);
-        } else {
-            console.log(`[MQTT] ${TOPIC_RFID_DETECTED_EVENT} topic'ine abone olundu.`);
-        }
-    });
+    // Daha önce burada TOPIC_RFID_DETECTED_EVENT'e abone oluyordunuz.
+    // Ancak ESP32 artık RFID mesajlarını TOPIC_STATUS_UPDATE_BASE altında gönderdiği için
+    // bu abonelik gereksizdi ve mesajın işlenmesini engelliyordu.
+    // Sadece TOPIC_STATUS_UPDATE_BASE'e wildcard ile abone olmamız yeterli.
 
     // Tüm istasyonların kendi durum güncellemelerini dinlemek için abone ol
     // Topic formatı: hitbis/istasyon/durum/+ (buradaki '+' herhangi bir slotCode'u temsil eder)
@@ -70,17 +67,13 @@ client.on("message", async (topic, message) => {
     try {
         const parsedMessage = JSON.parse(message.toString());
 
-        // RFID Algılama Olayları (ESP32'den gelen RFID okuma mesajları)
-        if (topic === TOPIC_RFID_DETECTED_EVENT) {
-            // ESP32 kodunda publishStatus fonksiyonu RFID okuduğunda
-            // "RFID_Kart_Okundu: [UID]" şeklinde bir status gönderiyor.
-            // Bu mesaja ek olarak slotCode'u da ekledik ESP32'de.
-            const { status, slotCode } = parsedMessage; 
-            const rfidTagMatch = status.match(/RFID_Kart_Okundu: (.*)/); // RFID_Kart_Okundu: UID formatını yakala
+        // Gelen mesaj TOPIC_STATUS_UPDATE_BASE ile başlıyorsa ve status "RFID_Kart_Okundu" ise bu bir RFID algılama olayıdır.
+        if (topic.startsWith(TOPIC_STATUS_UPDATE_BASE) && parsedMessage.status === "RFID_Kart_Okundu") {
+            const { slotCode, rfidTag } = parsedMessage; // Payload'da doğrudan rfidTag bekliyoruz
 
-            if (rfidTagMatch && slotCode) {
-                const rfidTag = rfidTagMatch[1].trim(); // UID'yi al
+            if (slotCode && rfidTag) {
                 console.log(`[EVENT] RFID algılandı. Slot: ${slotCode}, RFID: ${rfidTag}`);
+                // RFID algılandığında StationPocketService.onRFIDDetected'i çağır
                 const result = await stationPocketService.onRFIDDetected(
                     slotCode,
                     rfidTag
@@ -92,20 +85,18 @@ client.on("message", async (topic, message) => {
                 }
             } else {
                 console.warn(
-                    "[WARN] RFID algılama mesajı eksik bilgi içeriyor (status veya slotCode eksik):",
+                    "[WARN] RFID algılama mesajı eksik bilgi içeriyor (slotCode veya rfidTag eksik):",
                     parsedMessage
                 );
             }
         }
-        // Kilit Durumu Güncellemeleri (ESP32'den gelen servo durumu)
+        // Diğer durum güncellemeleri (örneğin istasyonun online olması)
         else if (topic.startsWith(TOPIC_STATUS_UPDATE_BASE)) {
-            const { status, slotCode } = parsedMessage; // ESP32'den gelen payload'da status ve slotCode bekliyoruz
+            const { status, slotCode } = parsedMessage;
             console.log(
                 `[SERVO STATUS FROM ESP] Slot: ${slotCode || 'Bilinmiyor'}, Durum: ${status}`
             );
             // TODO: İlgili kilit durumunu veritabanında güncelleme veya daha ileri işleme mantığı buraya eklenebilir.
-            // Örneğin:
-            // await StationPocketModel.findOneAndUpdate({ slotCode }, { lockStatus: status });
         }
     } catch (e) {
         console.error(`[ERROR] Gelen mesaj ayrıştırılırken veya işlenirken hata oluştu: ${e.message}`, e);

@@ -1,4 +1,3 @@
-// stationpocketservice.js
 
 import { ErrorResponse, SuccessResponse } from "../helpers/responseHelper.js";
 import StationPocketModel from "../models/StationPocketModel.js";

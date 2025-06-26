@@ -140,23 +140,6 @@ const onRFIDDetected = async (slotCode, rfidTag) => {
 
         if (!rental) {
             console.warn(`[WARN] Bu bisiklet (${bike._id}) için aktif kiralama bulunamadı.`);
-            const slotCode = "190207"; // Kontrol etmek istediğiniz slot kodunu buraya yazın veya dinamik değişkenden alın
-
-            const payload = {
-                command: "open", // Servo motoru 90 dereceye getirme (açma) komutu
-                slotCode: slotCode,
-            };
-
-            // publishMqttMessage ve TOPIC_COMMAND_BASE'in import edildiğinden emin olun:
-            // (Örn: const { publishMqttMessage, TOPIC_COMMAND_BASE } = await import("../services/mqttServices.js");)
-
-            const topic = `${TOPIC_COMMAND_BASE}${slotCode}`; // ESP32'nin abone olduğu topic
-
-            console.log(`[MQTT OUT] Servo açma komutu gönderiliyor. Topic: ${topic}, Payload:`, payload);
-
-            await publishMqttMessage(topic, payload); // Mesajı yayınla
-
-            console.log("[MQTT OUT] Servo açma komutu MQTT broker'a başarıyla yayınlandı.");
             return new ErrorResponse(400, "No active rental found for this bike");
         }
 
